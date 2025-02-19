@@ -1,0 +1,90 @@
+{
+    "files.associations": {
+        "algorithm": "c",
+        "format": "c",
+        "array": "c",
+        "string_view": "c",
+        "span": "c",
+        "iosfwd": "c",
+        "atomic": "c",
+        "bit": "c",
+        "*.tcc": "c",
+        "cctype": "c",
+        "charconv": "c",
+        "clocale": "c",
+        "cmath": "c",
+        "compare": "c",
+        "concepts": "c",
+        "cstdarg": "c",
+        "cstddef": "c",
+        "cstdint": "c",
+        "cstdio": "c",
+        "cstdlib": "c",
+        "ctime": "c",
+        "cwchar": "c",
+        "cwctype": "c",
+        "deque": "c",
+        "string": "c",
+        "unordered_map": "c",
+        "vector": "c",
+        "exception": "c",
+        "functional": "c",
+        "iterator": "c",
+        "memory": "c",
+        "memory_resource": "c",
+        "numeric": "c",
+        "optional": "c",
+        "random": "c",
+        "system_error": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c",
+        "initializer_list": "c",
+        "iostream": "c",
+        "istream": "c",
+        "limits": "c",
+        "new": "c",
+        "numbers": "c",
+        "ostream": "c",
+        "stdexcept": "c",
+        "streambuf": "c",
+        "text_encoding": "c",
+        "typeinfo": "c",
+        "variant": "c",
+        "map": "cpp",
+        "sstream": "cpp",
+        "iomanip": "cpp",
+        "cinttypes": "cpp",
+        "any": "cpp",
+        "codecvt": "cpp",
+        "cstring": "cpp",
+        "forward_list": "cpp",
+        "ratio": "cpp",
+        "ranges": "cpp",
+        "valarray": "cpp"
+    },
+    "terminal.integrated.profiles.windows": {
+        "PowerShell": {
+            "source": "PowerShell",
+            "icon": "terminal-powershell",
+            "args": ["-NoExit", "chcp 65001"]
+        },
+        "Command Prompt": {
+            "path": [
+                "${env:windir}\\Sysnative\\cmd.exe",
+                "${env:windir}\\System32\\cmd.exe"
+            ],
+            "args": ["/K", "chcp 65001"],
+            "icon": "terminal-cmd"
+        }
+    },
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "user",
+            "database": "${workspaceFolder:cppt}/db/user.db"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}

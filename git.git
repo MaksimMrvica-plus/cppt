@@ -1,0 +1,6 @@
+cd D:\cppprojects\cppt
+git init
+git remote add origin https://github.com/MaksimMrvica-plus/cppt
+git add .
+git commit -m "2025-02-20 02:00"
+git push -u origin master
