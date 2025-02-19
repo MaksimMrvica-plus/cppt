@@ -8,6 +8,13 @@
 #include "../../chat/user/user.h"
 #pragma comment(lib, "ws2_32.lib")
 
+
+// TODO 全局变量, 本地资料准备
+// 1. 加载用户资料到内存
+USER user;
+// 2. 加载聊天记录到内存
+// 3. 加载好友列表到内存
+// 4. 加载群组列表到内存
 void GetInputString(std::string &ss, const int MAX_LENGTH = 1024)
 {
     std::string str{0};
@@ -24,46 +31,123 @@ void GetInputString(std::string &ss, const int MAX_LENGTH = 1024)
     ss = str;
 }
 
+int SendReqRegisterMessage(SOCKET client_socket, const std::string &username, const std::string &password)
+{
+    // 创建一个 JSON 对象
+    ordered_json j = createOrderedJsonMessage(CIPHER, REQ_REGISTER, username, password);
+    // std::cout << j.dump(4) << std::endl;
+    // 发送
+    std::string send_mes = j.dump();
+    send(client_socket, send_mes.c_str(), send_mes.size(), 0);
+    std::cout << "INFO|Send a message to register -->>" << '\n' << j.dump(4) << '\n';
+    return SUCCESS;
+}
+
+
+
 int DealWithMessage(const std::string &ss)
 {
-    std::vector<std::string> res = ParseMessageCust(ss, 4, '[', ']');
-    std::string cipher = res[0];
-    std::string type = res[1];
-    std::string username = res[2];
-    std::string password = res[3];
-    if (cipher != CIPHER_STR)
+    std::cout << "INFO|DealWithMessage 接收数据：\n" << '\n';
+    ordered_json j = ordered_json::parse(ss);
+    std::cout << j.dump(4) << '\n';
+    std::string cipher  = j["cipher"];
+    std::string type    = j["type"];
+    if (cipher != CIPHER)
     {
         return CIPHER_ERROR;
     }
-    std::cout << type << '\t' << username << '\t' << password << std::endl;
-    if (type == "REGISTER" && username == "admin" && password == "admin")
+    if (type == ANS_REGISTER)
     {
-        std::cout << "INFO|接收返回消息成功，注册管理员成功" << '\n';
-        return REGISTER_SUCCESS;
+        // TODO 处理注册返回消息
+        std::string status = j["status"];
+        if (status == STATUS_SUCCESS)
+        {
+            std::cout << "INFO|接收返回消息成功，注册成功" << '\n';
+            return REGISTER_SUCCESS;
+        }
+        else if (status == STATUS_FAILURE)
+        {
+            std::cout << "INFO|接收返回消息成功，注册失败 : [用户名已存在]" << '\n';
+            return REGISTER_FAILURE;
+        }
+        else
+        {
+            std::cout << "INFO|接收返回消息成功，未知状态" << '\n';
+            return DEFAULT_ERROR;
+        }
+        return REGISTER_SUCCESS; // 留着测试用
     }
-    else if (type == "REGISTER")
+    else if (type == ANS_LOGIN)
     {
-        std::cout << "INFO|注册失败" << '\n';
-        return REGISTER_FAILURE;
+        if(STATUS_SUCCESS == j["status"]){ 
+            if (j["username"] == "admin")   // 登录成功时，不再返回密码，只用用户名判断是否是管理员
+            {
+                std::cout << "INFO|接收返回消息成功，登录管理员成功" << '\n';
+                return LOGIN_ADMIN_SUCCESS;
+            }
+            std::cout << "INFO|接收返回消息成功，登录普通账户成功" << '\n';
+            return LOGIN_SUCCESS;
+        }
+        else
+        {
+            std::cout << "INFO|接收返回消息成功，登录失败" << '\n';
+            return LOGIN_FAILURE;
+        }
     }
-    else if (type == "LOGIN" && username == "admin" && password == "admin")
+    else if (type == ANS_USER_PROFILE)
     {
-        std::cout << "INFO|接收返回消息成功，登录管理员成功" << '\n';
-        return LOGIN_SUCCESS;
+        // TODO 用户资料逻辑
+        std::cout << "INFO|接收返回消息成功，用户资料" << '\n';
+        return SUCCESS;
     }
-    else if (type == "LOGIN")
+    else
     {
-        std::cout << "INFO|登录失败" << '\n';
-        return LOGIN_FAILURE;
+        std::cout << "INFO|接收返回消息成功，未知类型" << '\n';
+        return DEFAULT_ERROR;
     }
 
     return DEFAULT_ERROR;
 }
 
+int RecvAnsRegisterMessage(SOCKET client_socket)
+{
+    // 接收结果
+    std::string rbuffer(MESSAGE_LENGTH_1K, '\0'); // 分配足够的空间
+    int ret = recv(client_socket, &rbuffer[0], MESSAGE_LENGTH_1K, 0);
+    if (ret <= 0)
+    {
+        std::cout << "ERROR|Failed to receive the register message procedure" << '\n';
+        return FAILURE;
+    }
+    else
+    {
+        // TODO 对返回结果进行解析，成功/失败
+        int res_code = DealWithMessage(rbuffer);
+
+
+        if (REGISTER_SUCCESS == res_code)
+        {
+            std::cout << "INFO|Register successed" << '\n';
+            return SUCCESS;
+        }
+        else if (REGISTER_FAILURE == res_code)
+        {
+            std::cout << "ERROR|Register failed" << '\n';
+            return FAILURE;
+        }
+        else
+        {
+            std::cout << "ERROR|Register Failed Unknown Reason" << '\n';
+            return FAILURE;
+        }
+    }
+    return FAILURE;
+}
+
 bool CheckUserRegister(SOCKET client_socket, const std::string mes)
 {
     // 发送
-    send(client_socket, mes.c_str(), mes.size(), 0);
+    SendReqRegisterMessage(client_socket, "admin", "admin");
     std::cout << "INFO|Send a message to check whether the user already exists" << '\n';
     // 接收结果 (没有服务侧创建，返回真，否则返回假)
     std::string rbuffer(MESSAGE_LENGTH_1K, '\0'); // 分配足够的空间
@@ -94,12 +178,14 @@ bool CheckUserRegister(SOCKET client_socket, const std::string mes)
     }
     return false;
 }
+
 bool CheckAccountFormat(const std::string name, const std::string pass)
 {
     // TODO 检查账户基本格式正确
     // 在这里面输出错误信息
     return true;
 }
+
 bool CheckLoginState(SOCKET client_socket, const std::string mes)
 {
     // TODO
@@ -116,7 +202,7 @@ bool CheckLoginState(SOCKET client_socket, const std::string mes)
     }
     // TODO 对返回结果进行解析，成功/失败
     int res_code = DealWithMessage(rbuffer);
-    if (LOGIN_SUCCESS == res_code)
+    if (LOGIN_SUCCESS == res_code or LOGIN_ADMIN_SUCCESS == res_code)
     {
         std::cout << "INFO|Login successed" << '\n';
         return true;
@@ -156,20 +242,19 @@ bool Register(SOCKET client_socket)
             std::cout << "Error|Account Format Invalid !" << std::endl;
             continue;
         }
-        std::string reg_mes = CIPHER + "[REGISTER][" + username + "][" + password + "]";
-
-        // 执行注册等待服务侧返回结果
-        if (!CheckUserRegister(client_socket, reg_mes))
+        // 发送注册请求
+        if (!SendReqRegisterMessage(client_socket, username, password))
         {
-            std::cout << "Error|User registration failed" << std::endl;
+            std::cout << "Error|Send Register Message Failed" << std::endl;
             continue;
         }
-        else
-        { // TODO* 不存在,注册成功,3s后返回
-            //
-            std::cout << "INFO|User registration succeeded" << std::endl;
-            return true;
+        // 接收注册结果
+        if (!RecvAnsRegisterMessage(client_socket))
+        {
+            std::cout << "Error|Receive Register Message Failed" << std::endl;
+            continue;
         }
+
     }
     return false;
 }
@@ -195,10 +280,10 @@ bool Login(SOCKET client_socket)
             std::cout << "Error | Account Format Invalid !" << std::endl;
             continue;
         }
-        std::string log_mes = CIPHER + "[LOGIN][" + username + "][" + password + "]";
-
+        ordered_json _j = createOrderedJsonMessage(CIPHER, REQ_LOGIN, username, password);
+        std::cout << "发送登录请求消息:\n" << _j.dump(4) << std::endl;
         // 验证登录状态
-        if (!CheckLoginState(client_socket, log_mes))
+        if (!CheckLoginState(client_socket, _j.dump()))
         {
             std::cout << "Error : Username or Password error !" << std::endl;
             continue;
@@ -206,8 +291,10 @@ bool Login(SOCKET client_socket)
         else
         { // 登录成功
             std::cout << "Login successful!" << std::endl;
-            // TODO 加载用户资料到内存
+            // TODO 加载用户资料到内存 (应该要放到主程序里了)
             std::cout << "Load Profile ..." << std::endl;
+            user.setUsername(username);
+            user.setPassword(password);
             return true;
         }
     }
@@ -262,7 +349,7 @@ int RegisterOrLogin(SOCKET client_socket)
         }
     }
 
-    return 0;
+    return LOGIN_FAILURE;
 }
 
 SOCKET InitializeClientSocket()
@@ -303,12 +390,7 @@ SOCKET InitializeClientSocket()
 
 int main()
 {
-    // TODO 本地资料准备
-    // 1. 加载用户资料到内存
-    USER user;
-    // 2. 加载聊天记录到内存
-    // 3. 加载好友列表到内存
-    // 4. 加载群组列表到内存
+
 
     // 1. 初始化客户端socket
     SOCKET clientSocket = InitializeClientSocket();
@@ -320,7 +402,7 @@ int main()
 
     // 2. 注册、登录验证
     int log_ret = RegisterOrLogin(clientSocket);
-    if (LOGIN_QUIT == log_ret)
+    if (LOGIN_QUIT == log_ret or LOGIN_FAILURE == log_ret)
     {
         std::cout << "取消 注册or登录, 即将退出程序..." << std::endl;
         Sleep(3 * 1000); // 休眠3s
@@ -332,10 +414,26 @@ int main()
         std::cout << "登录成功，等待加载用户资料..." << std::endl;
     }
 
-    // 3. TODO 加载用户资料到本地
+    // 3. 加载用户资料到本地
     // 发送资料请求消息
-    std::string profile_mes = CIPHER + "[R_PROFILE]" + "[" + user.getUsername() + "][]";
+    ordered_json req_profile = createOrderedJsonMessage(CIPHER, "R_PROFILE", user.getUsername());
+    std::cout << "INFO | 发送请求用户资料消息:\n" << req_profile.dump(4) << '\n';
+    std::string profile_mes = req_profile.dump();
     send(clientSocket, profile_mes.c_str(), profile_mes.size(), 0);
+    // 接收返回结果, 包含用户资料, 加载到内存
+    std::string rbuffer(MESSAGE_LENGTH_1K, '\0'); // 分配足够的空间
+    int ret = recv(clientSocket, &rbuffer[0], MESSAGE_LENGTH_1K, 0);
+    if (ret <= 0)
+    {
+        std::cout << "ERROR|Failed to receive the user profile message procedure" << '\n';
+        return -1;
+    }
+    else
+    {
+        std::cout << "INFO|Receive user profile message success !" << '\n';
+        std::cout << ordered_json::parse(rbuffer).dump(4) << '\n';
+    }
+    // TODO*** 加载到内存
 
     // 3 send
     while (1)
@@ -353,10 +451,14 @@ int main()
                   << rbuffer << std::endl;
     }
 
-    closesocket(clientSocket);
     // 4 close
+    closesocket(clientSocket);
 
     return 0;
 }
 
+// g++ client.cpp -o client.exe -L ../server  -l sqlite3
 // g++ -o client client.cpp -lws2_32
+// g++ client.cpp -o client.exe -I include -L . -l sqlite3 -lws2_32
+// 要带着其他自定义库文件一起编译
+// g++ -o client client.cpp ../tool/tool.cpp ../tool/jsontool.cpp ../../chat/user/user.cpp -lws2_32
