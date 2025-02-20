@@ -1,0 +1,860 @@
+{
+    "tool_name": "fund",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut_searcher::fund_sc",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "metal",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-3::gold_trendchart",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "time",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-6::time_sc",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "oil",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-6::oil_price",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "calendar",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcur-searcher-4::rili",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "festival",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcur-searcher-4::rili",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "restriction",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcur-searcher-4::xianxing",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "lottery_drawnum",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-6::lottery_drawnum",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "lottery_trendchart",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-6::lottery_trendchart",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "lottery_drawlist",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-6::lottery_drawlist",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "dict_common_new",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-6::dict_common_new",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "dict_jinshan",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "dict-youdao-new::dict_jinshan",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "general_entity_shengpizi",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "education_hanyu::general_entity_shengpizi",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "general_entity_shengpici",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "education_hanyu::general_entity_shengpici",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "gushiwen_title",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "education_general_entity_ancientpoetry::gushiwen_title",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "general_entity_chengyu_new",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "education_hanyu::general_entity_chengyu_new",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "gushiwen_sentence_description",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}诗句",
+            "request_sc": "education_general_entity_ancientpoetry::gushiwen_sentence_description",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "gushiwen_author",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "含{word}的诗句",
+            "request_sc": "education_general_entity_ancientpoetry::gushiwen_author",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "express_cn_new",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "快递查询",
+            "request_sc": "shortcut-searcher-3::express_cn_new",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "danwei",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "单位换算",
+            "request_sc": "shortcut-searcher-6::danwei",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "rili",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "日历",
+            "request_sc": "shortcut-searcher-6::rili",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "astro_name_fortune",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-6::astro_name_fortune",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "astro_pair",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "星座配对",
+            "request_sc": "shortcut-searcher-6::astro_pair",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "post_city",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}邮编",
+            "request_sc": "shortcut-searcher-4::post_city",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "mobile_location",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut_searcher::mobile_location",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "number_ip_new",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-6::number_ip_new",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "name_sc",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "起名",
+            "request_sc": "shortcut-searcher-6::name_sc",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+
+{
+    "tool_name": "shengxiao_new",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}是什么年",
+            "request_sc": "shortcut-searcher-6::shengxiao_new",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+
+{
+    "tool_name": "astro_general",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "星座",
+            "request_sc": "shortcut-searcher-6::astro_general",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "code_tel_city",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-6::code_tel_city",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "xianxing",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-4::xianxing",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "dream_search",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-6::dream_search",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "shengxiao_general",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-6::shengxiao_general",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "life_show_general_image",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "life_show_general_image::life_show_general_image",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "xiami_song",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "xiami::xiami_song",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "xiami_lyric_song",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "xiami::xiami_lyric_song",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "xiami_singer",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "xiami::xiami_singer",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "xiami_song_lyric",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "xiami::xiami_song_lyric",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "localsite_info",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-6::localsite_info",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "yaohao_new",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-2::yaohao_new",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "weibo_strong",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shenma_weibo::weibo_strong",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "introduction_note",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "kg-notes::introduction_note",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "travel_ranking_list",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-4::travel_ranking_list",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "train_number",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-6::train_number",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "edu_classicread",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-6::edu_classicread",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "chan_nav_edu_newkpoint",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "chan-nav-sc::chan_nav_edu_newkpoint",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "travel_overview",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-5::travel_overview",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "travel_dest_overview",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-3::travel_dest_overview",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "traffic_train",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut_searcher::traffic_train",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "traffic_flight",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-3::traffic_flight",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "app",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "app::app",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "manga_filter",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-4::manga_filter",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "novel_authorized",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "novel_dispatch::novel_authorized",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "kk_kg_entity_people",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "people-entity-new::kk_kg_entity_people",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "peoplestarzeus",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut_searcher::peoplestarzeus",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "novel_ali",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "novel_ali::novel_ali",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "news_uchq",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "news_uchq::news_uchq",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "local_affair",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-6::local_affair",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "localsite_info",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-6::localsite_info",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "lima_applet_polymer",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-6::lima_applet_polymer",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "baike_sc",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "baike_general::baike_sc",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "baike_sc_0",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "baike_general::baike_sc_0",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "travel_ticket_new",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-4::travel_ticket_new",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "travel_ticket_new",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-4::travel_ticket_new",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "coach_fan",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-6::coach_fan",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}
+{
+    "tool_name": "flight_number",
+    "rule_datas": [
+        {
+            "rule_field": "q",
+            "q": "{word}",
+            "request_sc": "shortcut-searcher-2::flight_number",
+            "vendor": "100002",
+            "vid": "205",
+            "multi_query_mode": "1"
+        }
+    ]
+}

@@ -1,0 +1,27 @@
+Your identification has been saved in C:\Users\SGW\Desktop\cppt\key.txt
+Your public key has been saved in C:\Users\SGW\Desktop\cppt\key.txt.pub
+The key fingerprint is:
+SHA256:NZtm6DKi7tnQ6VRlXFjJgjPrHvyzkGofugyDlXcM0f4 2771967428@qq.com
+The key's randomart image is:
++---[RSA 4096]----+
+|    .. . +o.     |
+|     .=.o.o      |
+|    .. ++.o      |
+|   . ooo o +     |
+|  o .o+.S =      |
+| o o ++oEo       |
+|. + =.*o.        |
+|   @.+.=o        |
+| o=.Bo. .o       |
++----[SHA256]-----+
+
+
+
+1.失败：
+测试连接： 再次尝试通过 SSH 连接到 GitHub：
+ssh -T git@github.com
+
+成功：
+如果你已经正确添加了公钥，但仍然遇到问题，请确保你的 SSH 客户端正在使用正确的私钥。你可以通过以下命令强制指定私钥文件
+ssh -i C:/Users/SGW/Desktop/cppt/key.txt -T git@github.com
+
