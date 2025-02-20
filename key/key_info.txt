@@ -1,0 +1,34 @@
+
+
+cd D:\cppprojects\cppt
+git init
+git remote add origin https://github.com/MaksimMrvica-plus/cppt
+git add .
+git commit -m "2025-02-20 02:00"
+git push -u origin master
+
+
+
+git config --global user.email "2771967428@qq.com"
+git config --global user.name "MaksimMrvica-plus"
+
+1.失败：
+测试连接： 尝试通过 SSH 连接到 GitHub：
+ssh -T git@github.com
+
+成功：
+如果你已经正确添加了公钥，但仍然遇到问题，请确保你的 SSH 客户端正在使用正确的私钥。你可以通过以下命令强制指定私钥文件
+ssh -i C:/Users/SGW/Desktop/cppt/key.txt -T git@github.com
+
+
+添加\取消代理
+git config --global https.proxy http://127.0.0.1:1080
+
+git config --global https.proxy https://127.0.0.1:1080
+
+git config --global --unset http.proxy
+
+git config --global --unset https.proxy
+
+
+npm config delete proxy
