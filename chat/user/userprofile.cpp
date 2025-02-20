@@ -86,3 +86,17 @@ void UserProfile::setEducation(const std::string& education) {
 void UserProfile::setWebsite(const std::string& website) {
     this->website = website;
 }
+
+// 显示用户资料
+void UserProfile::displayUserProfile() const{
+    std::cout << "展示用户资料" << std::endl;
+    std::cout << "Nickname: " << nickname << std::endl;
+    std::cout << "Gender: " << gender << std::endl;
+    std::cout << "Birthday: " << birthday << std::endl;
+    std::cout << "Bio: " << bio << std::endl;
+    std::cout << "Location: " << location << std::endl;
+    std::cout << "Occupation: " << occupation << std::endl;
+    std::cout << "Interests: " << interests << std::endl;
+    std::cout << "Education: " << education << std::endl;
+    std::cout << "Website: " << website << std::endl;
+}

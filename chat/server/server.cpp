@@ -88,6 +88,76 @@ int OpenDB(sqlite3 *&db, std::string db_path)
     return OPEN_DB_SUCCESS;
 }
 
+int RegisterUser(const std::string& username, const std::string& password) {
+    /**
+     * @brief 注册用户
+     *
+     * 该函数用于在数据库中注册新用户。首先，它会检查用户是否已经存在于数据库中。
+     * 如果用户已存在，函数将返回 `SQL_USER_EXIST`。如果用户不存在，函数将插入新用户并返回 `REGISTER_SUCCESS`。
+     *
+     * @param username 用户名
+     * @param password 密码
+     * @return int 返回码，表示操作结果
+     *         - `REGISTER_SUCCESS`：注册成功
+     *         - `SQL_USER_EXIST`：用户已存在
+     *         - `OPEN_DB_FAILURE`：无法打开数据库
+     *         - `SQL_ERROR`：SQL 语句执行错误
+     */
+    sqlite3* db;
+    const char* dbPath = R"(..\..\db\user.db)";
+
+    // 打开数据库连接
+    int rc = sqlite3_open(dbPath, &db);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Can't open database: " << sqlite3_errmsg(db) << std::endl;
+        return OPEN_DB_FAILURE;
+    }
+
+    // 查询用户是否存在
+    std::string sql = "SELECT username FROM users WHERE username = ?";
+    sqlite3_stmt* stmt;
+    rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return SQL_ERROR;
+    }
+
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
+
+    rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_ROW) {
+        // 用户已存在
+        sqlite3_close(db);
+        std::cout << "INFO | 注册失败，用户已存在" << std::endl;
+        return SQL_USER_EXIST;
+    } else {
+        // 用户不存在，插入新用户
+        sql = "INSERT INTO users (username, password) VALUES (?, ?)";
+        rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
+        if (rc != SQLITE_OK) {
+            std::cerr << "INFO | Failed to prepare insert statement: " << sqlite3_errmsg(db) << std::endl;
+            sqlite3_close(db);
+            return SQL_ERROR;
+        }
+
+        sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 2, password.c_str(), -1, SQLITE_STATIC);
+
+        rc = sqlite3_step(stmt);
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        if (rc != SQLITE_DONE) {
+            std::cerr << "INFO | Failed to insert new user: " << sqlite3_errmsg(db) << std::endl;
+            return SQL_ERROR;
+        }
+        std::cout << "INFO | 成功插入输入到用户表" << std::endl;
+        std::cout << "INFO | 注册成功" << std::endl;
+        return REGISTER_SUCCESS;
+    }
+}
+
 int QueryLoginInUser(const std::string& username, const std::string& password) {
     sqlite3* db;
     const char* dbPath = R"(..\..\db\user.db)";
@@ -184,9 +254,53 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
     std::string password = j["password"];
     if (REQ_REGISTER == type) // 处理注册请求
     {
-        // TODO 查询数据库，判断用户是否存在
-        // 1. 存在，返回注册失败   status = STATUS_FAILURE
-        // 2. 不存在，插入数据，返回注册成功  status = STATUS_SUCCESS
+        // 注册用户,查询数据库，判断用户是否存在
+        // 1. 存在，返回注册失败               status = STATUS_FAILURE
+        // 2. 不存在，插入数据，返回注册成功    status = STATUS_SUCCESS
+        // 3. 其他错误                        status = STATUS_UNKNOWN_ERROR
+        int _ret = RegisterUser(username, password);
+        if (REGISTER_SUCCESS == _ret)
+        {
+            std::cout << "INFO| Register User Success [" << username << "]" << std::endl;
+            ordered_json _js = createOrderedJsonMessage();
+            SetOrdJsonKV(_js, std::make_pair("cipher", CIPHER));
+            SetOrdJsonKV(_js, std::make_pair("type", ANS_REGISTER));
+            SetOrdJsonKV(_js, std::make_pair("username", username));
+            SetOrdJsonKV(_js, std::make_pair("message", "Register success"));
+            SetOrdJsonKV(_js, std::make_pair("status", STATUS_SUCCESS));
+            std::string res_mes = _js.dump();
+            std::cout << "INFO| return user profile 发送注册应答消息:" << "\n" << _js.dump(4) << std::endl; 
+            send(clientSocket, res_mes.c_str(), res_mes.size(), 0);
+            return REGISTER_SUCCESS;
+        }
+        else if (SQL_USER_EXIST == _ret)
+        {
+            std::cout << "INFO| Register User Failed [" << username << "], User Exist" << std::endl;
+            ordered_json _js = createOrderedJsonMessage();
+            SetOrdJsonKV(_js, std::make_pair("cipher", CIPHER));
+            SetOrdJsonKV(_js, std::make_pair("type", ANS_REGISTER));
+            SetOrdJsonKV(_js, std::make_pair("username", username));
+            SetOrdJsonKV(_js, std::make_pair("message", "Register failed, User Exist"));
+            SetOrdJsonKV(_js, std::make_pair("status", STATUS_FAILURE));
+            std::string res_mes = _js.dump();
+            std::cout << "INFO| return user profile 发送注册应答消息:" << "\n" << _js.dump(4) << std::endl; 
+            send(clientSocket, res_mes.c_str(), res_mes.size(), 0);
+            return REGISTER_FAILURE;
+        }
+        else
+        {
+            std::cout << "INFO| Register User Failed [" << username << "], Unknown Reason" << std::endl;
+            ordered_json _js = createOrderedJsonMessage();
+            SetOrdJsonKV(_js, std::make_pair("cipher", CIPHER));
+            SetOrdJsonKV(_js, std::make_pair("type", ANS_REGISTER));
+            SetOrdJsonKV(_js, std::make_pair("username", username));
+            SetOrdJsonKV(_js, std::make_pair("message", "Register failed, Unknown Reason"));
+            SetOrdJsonKV(_js, std::make_pair("status", STATUS_UNKNOWN_ERROR));
+            std::string res_mes = _js.dump();
+            std::cout << "INFO| return user profile 发送注册应答消息:" << "\n" << _js.dump(4) << std::endl;
+            send(clientSocket, res_mes.c_str(), res_mes.size(), 0);
+            return REGISTER_FAILURE;
+        }
 
     }
     else if(REQ_LOGIN == type) // 处理登录请求
@@ -340,6 +454,8 @@ int main()
     return 0;
 }
 
+// chcp 65001
+
 // #include "../tool/tool.h"
 // #include "../client/define.h"
 // #include "../../chat/user/user.h"
@@ -347,5 +463,3 @@ int main()
 // g++ -o server server.cpp -lws2_32 -lsqlite3
 
 // g++ server.cpp  ../tool/tool.cpp ../tool/jsontool.cpp ../../chat/user/user.cpp  -o server.exe -I include -L . -l sqlite3 -lws2_32 # 之后编译只要这步即可
-
-// chcp 65001

@@ -14,40 +14,43 @@ const std::string CIPHER_SQUARE     =  "[NXFZZB!Q#3SMB]";
 
 // 通用返回码
 #define SUCCESS                    1
-#define FAILURE                   -1
-#define DEFAULT_SUCCESS            0
+#define DEFAULT_SUCCESS            2
+
+#define FAILURE                    0
 #define DEFAULT_FAILURE           -1
 #define DEFAULT_QUIT              -2
+#define UNKNOWN_ERROR             -3
 
-
-// 消息返回码
+// 消息、状态 返回码
 #define DEFAULT_ERROR            -999
-#define CIPHER_ERROR                0
+#define CIPHER_ERROR             -998
 #define REGISTER_SUCCESS            7
-#define REGISTER_FAILURE            8
-#define LOGIN_SUCCESS               9
-#define LOGIN_FAILURE              10
-#define LOGIN_QUIT                 11
+#define REGISTER_FAILURE           -7
+#define LOGIN_SUCCESS              -9
+#define LOGIN_FAILURE             -10
+#define LOGIN_QUIT                -11
 #define LOGIN_ADMIN_SUCCESS        12 
-#define LOGIN_ADMIN_FAILURE        13 
+#define LOGIN_ADMIN_FAILURE       -12 
+#define LOAD_USER_PROFILE_SUCCESS   8
+#define LOAD_USER_PROFILE_FAILURE  -8
 
 
 // 数据库返回码
-#define OPEN_DB_SUCCESS             0
+#define OPEN_DB_SUCCESS             1
 #define OPEN_DB_FAILURE            -1
 #define OPEN_DB_ERROR              -2
 
 
-// SQL账号查询返回码
+// SQL用户账号查询返回码
 #define SQL_ERROR                  -1
 #define SQL_USER_EXIST              1
 #define SQL_USER_NOT_EXIST          2
-#define SQL_USER_PASSWORD_ERROR     3
+#define SQL_USER_PASSWORD_ERROR    -3
 #define SQL_USER_PASSWORD_CORRECT   4
 
 
 #define SQL_USER_PROFILE_EXIST      6
-#define SQL_USER_PROFILE_NOT_EXIST  7
+#define SQL_USER_PROFILE_NOT_EXIST -6
 
 
 
@@ -77,5 +80,12 @@ const std::string CIPHER_SQUARE     =  "[NXFZZB!Q#3SMB]";
 #define STATUS_SUCCESS              "SUCCESS"
 #define STATUS_FAILURE              "FAILURE"
 #define STATUS_ERROR                "ERROR"
+#define STATUS_UNKNOWN_ERROR        "UNKNOWN_ERROR"
+
+
+// 更新本地用户资料
+#define UPDATE_PROFILE_SUCCESS      1
+#define UPDATE_PROFILE_FAILURE      0
+
 
 #endif

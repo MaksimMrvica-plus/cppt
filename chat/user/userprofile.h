@@ -2,19 +2,21 @@
 #define _USER_PROFILE_H_
 
 #include <string>
+#include <iostream>
+
 
 class UserProfile {
 public:
     // 构造函数
-    UserProfile(const std::string& nickname = "",
-                const std::string& gender = "",
-                const std::string& birthday = "",
-                const std::string& bio = "",
-                const std::string& location = "",
-                const std::string& occupation = "",
-                const std::string& interests = "",
-                const std::string& education = "",
-                const std::string& website = "");
+    UserProfile(const std::string& nickname     = "kunkun",
+                const std::string& gender       = "",
+                const std::string& birthday     = "",
+                const std::string& bio          = "",
+                const std::string& location     = "",
+                const std::string& occupation   = "",
+                const std::string& interests    = "",
+                const std::string& education    = "",
+                const std::string& website      = "");
 
     // 访问器函数
     std::string getNickname() const;
@@ -37,6 +39,9 @@ public:
     void setInterests(const std::string& interests);
     void setEducation(const std::string& education);
     void setWebsite(const std::string& website);
+
+    // 显示用户资料
+    void displayUserProfile() const;
 
 private:
     std::string nickname;     // 昵称

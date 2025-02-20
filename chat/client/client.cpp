@@ -2,16 +2,21 @@
 #include <string>
 #include <limits>
 #include <vector>
+#include <unordered_map>
+#include <unordered_set>
 #include <winsock2.h>
 #include "define.h"
 #include "../tool/tool.h"
 #include "../../chat/user/user.h"
+#include "../../chat/user/userprofile.h"
+
 #pragma comment(lib, "ws2_32.lib")
 
 
 // TODO 全局变量, 本地资料准备
 // 1. 加载用户资料到内存
 USER user;
+UserProfile user_profile;
 // 2. 加载聊天记录到内存
 // 3. 加载好友列表到内存
 // 4. 加载群组列表到内存
@@ -31,6 +36,37 @@ void GetInputString(std::string &ss, const int MAX_LENGTH = 1024)
     ss = str;
 }
 
+int updateUserProfile(UserProfile& user_profile, const ordered_json& json) {
+    if (json.contains("nickname")) {
+        user_profile.setNickname(json["nickname"]);
+    }
+    if (json.contains("gender")) {
+        user_profile.setGender(json["gender"]);
+    }
+    if (json.contains("birthday")) {
+        user_profile.setBirthday(json["birthday"]);
+    }
+    if (json.contains("bio")) {
+        user_profile.setBio(json["bio"]);
+    }
+    if (json.contains("location")) {
+        user_profile.setLocation(json["location"]);
+    }
+    if (json.contains("occupation")) {
+        user_profile.setOccupation(json["occupation"]);
+    }
+    if (json.contains("interests")) {
+        user_profile.setInterests(json["interests"]);
+    }
+    if (json.contains("education")) {
+        user_profile.setEducation(json["education"]);
+    }
+    if (json.contains("website")) {
+        user_profile.setWebsite(json["website"]);
+    }
+    return UPDATE_PROFILE_SUCCESS;
+}
+
 int SendReqRegisterMessage(SOCKET client_socket, const std::string &username, const std::string &password)
 {
     // 创建一个 JSON 对象
@@ -38,7 +74,12 @@ int SendReqRegisterMessage(SOCKET client_socket, const std::string &username, co
     // std::cout << j.dump(4) << std::endl;
     // 发送
     std::string send_mes = j.dump();
-    send(client_socket, send_mes.c_str(), send_mes.size(), 0);
+    int ret = send(client_socket, send_mes.c_str(), send_mes.size(), 0);
+    if (ret <= 0)
+    {
+        std::cout << "ERROR|Failed to send the register message procedure" << '\n';
+        return FAILURE;
+    } 
     std::cout << "INFO|Send a message to register -->>" << '\n' << j.dump(4) << '\n';
     return SUCCESS;
 }
@@ -52,14 +93,15 @@ int DealWithMessage(const std::string &ss)
     std::cout << j.dump(4) << '\n';
     std::string cipher  = j["cipher"];
     std::string type    = j["type"];
+    std::string status  = j["status"];
     if (cipher != CIPHER)
     {
         return CIPHER_ERROR;
     }
     if (type == ANS_REGISTER)
     {
-        // TODO 处理注册返回消息
-        std::string status = j["status"];
+        // 处理注册返回消息
+
         if (status == STATUS_SUCCESS)
         {
             std::cout << "INFO|接收返回消息成功，注册成功" << '\n';
@@ -70,16 +112,16 @@ int DealWithMessage(const std::string &ss)
             std::cout << "INFO|接收返回消息成功，注册失败 : [用户名已存在]" << '\n';
             return REGISTER_FAILURE;
         }
-        else
+        else // LTODO 可以具体成数据库错误和其他错误
         {
-            std::cout << "INFO|接收返回消息成功，未知状态" << '\n';
-            return DEFAULT_ERROR;
+            std::cout << "INFO|接收返回消息成功，未知错误" << '\n';
+            return UNKNOWN_ERROR;
         }
-        return REGISTER_SUCCESS; // 留着测试用
+        //return REGISTER_SUCCESS; // 留着测试用
     }
     else if (type == ANS_LOGIN)
     {
-        if(STATUS_SUCCESS == j["status"]){ 
+        if(STATUS_SUCCESS == status){ 
             if (j["username"] == "admin")   // 登录成功时，不再返回密码，只用用户名判断是否是管理员
             {
                 std::cout << "INFO|接收返回消息成功，登录管理员成功" << '\n';
@@ -94,11 +136,24 @@ int DealWithMessage(const std::string &ss)
             return LOGIN_FAILURE;
         }
     }
-    else if (type == ANS_USER_PROFILE)
+    else if (ANS_USER_PROFILE == type)
     {
-        // TODO 用户资料逻辑
-        std::cout << "INFO|接收返回消息成功，用户资料" << '\n';
-        return SUCCESS;
+        if (STATUS_SUCCESS == status){
+            std::cout << "INFO|接收返回消息成功，获取用户资料成功" << '\n';
+            // 加载到内存
+            ordered_json data = j["data"];
+            if (UPDATE_PROFILE_SUCCESS == updateUserProfile(user_profile, data)){
+                std::cout << "INFO | Update User Profile [Success] !" << '\n';
+            }
+            else{
+                std::cout << "ERROR | Update User Profile [Failed] !" << '\n';
+            }
+            return LOAD_USER_PROFILE_SUCCESS;
+        }
+        else if (STATUS_FAILURE == status){
+            std::cout << "INFO | 需要创建用户资料" << std::endl;
+            return LOAD_USER_PROFILE_FAILURE;
+        }
     }
     else
     {
@@ -121,31 +176,32 @@ int RecvAnsRegisterMessage(SOCKET client_socket)
     }
     else
     {
-        // TODO 对返回结果进行解析，成功/失败
+        // 对返回结果进行解析，成功/失败
         int res_code = DealWithMessage(rbuffer);
 
 
         if (REGISTER_SUCCESS == res_code)
         {
             std::cout << "INFO|Register successed" << '\n';
-            return SUCCESS;
+            return REGISTER_SUCCESS;
         }
         else if (REGISTER_FAILURE == res_code)
         {
             std::cout << "ERROR|Register failed" << '\n';
-            return FAILURE;
+            return REGISTER_FAILURE;
         }
         else
         {
             std::cout << "ERROR|Register Failed Unknown Reason" << '\n';
-            return FAILURE;
+            return REGISTER_FAILURE;
         }
     }
-    return FAILURE;
+
 }
 
 bool CheckUserRegister(SOCKET client_socket, const std::string mes)
 {
+    // FLAG 暂时不用
     // 发送
     SendReqRegisterMessage(client_socket, "admin", "admin");
     std::cout << "INFO|Send a message to check whether the user already exists" << '\n';
@@ -179,16 +235,75 @@ bool CheckUserRegister(SOCKET client_socket, const std::string mes)
     return false;
 }
 
-bool CheckAccountFormat(const std::string name, const std::string pass)
+bool CheckAccountFormat(const std::string& name, const std::string& pass)
 {
-    // TODO 检查账户基本格式正确
-    // 在这里面输出错误信息
-    return true;
+    // 允许的用户名字符集合
+    std::unordered_set<char> name_char_set = {
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        '_', '.', '-'
+    };
+    // 允许的密码字符集合
+    std::unordered_set<char> pass_char_set = {
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+'
+    };
+    bool flag = true;
+    // 检查用户名长度
+    if (name.size() < 8 || name.size() > 16)
+    {
+        std::cout << "Error|Username Length Invalid !" << std::endl;
+        flag = false;
+    }
+    // 检查密码长度
+    if (pass.size() < 8 || pass.size() > 16)
+    {
+        std::cout << "Error|Password Length Invalid !" << std::endl;
+        flag = false;
+    }
+    if (!flag)return false;     // 提前检出，防止后续麻烦
+    // 检查用户名字符
+    std::string errc = "";
+    for (const auto& c : name)
+    {
+        if (name_char_set.find(c) == name_char_set.end()) errc += c;
+    }
+    if (!errc.empty()){
+        flag = false;
+        std::cout << "Error|Username Char Invalid : [" << errc << ']' << std::endl;
+    }
+
+    // 检查密码字符
+    errc = "";
+    for (const auto& c : pass)
+    {
+        if (pass_char_set.find(c) == pass_char_set.end()) errc += c;
+    }
+    if (!errc.empty()){
+    std::cout << "Error|Password Char Invalid : [" << errc << ']' << std::endl;
+    flag = false;
+    }
+
+    // 检查密码风险度，必须包含至少 一个大写字母或小写字母，一个数字，一个特殊符号
+    bool has_upper = false, has_lower = false, has_digit = false, has_special = false;
+    for (const auto& c : pass) {
+        if (isupper(c)) has_upper = true;
+        if (islower(c)) has_lower = true;
+        if (isdigit(c)) has_digit = true;
+        if (pass_char_set.find(c) != pass_char_set.end() && !isalnum(c)) has_special = true;
+    }
+    if ((!has_upper && !has_lower) || !has_digit || !has_special) {
+        std::cout << "Error|Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character." << std::endl;
+        flag = false;
+    }
+    return flag;
 }
 
 bool CheckLoginState(SOCKET client_socket, const std::string mes)
 {
-    // TODO
     // 发送
     send(client_socket, mes.c_str(), mes.size(), 0);
     std::cout << "INFO|Send a message to login..." << '\n';
@@ -200,7 +315,7 @@ bool CheckLoginState(SOCKET client_socket, const std::string mes)
         std::cout << "ERROR|Failed to receive the login message procedure" << '\n';
         return false;
     }
-    // TODO 对返回结果进行解析，成功/失败
+    // 对返回结果进行解析，成功/失败
     int res_code = DealWithMessage(rbuffer);
     if (LOGIN_SUCCESS == res_code or LOGIN_ADMIN_SUCCESS == res_code)
     {
@@ -243,16 +358,22 @@ bool Register(SOCKET client_socket)
             continue;
         }
         // 发送注册请求
-        if (!SendReqRegisterMessage(client_socket, username, password))
+        if (0 >= SendReqRegisterMessage(client_socket, username, password))
         {
             std::cout << "Error|Send Register Message Failed" << std::endl;
             continue;
         }
         // 接收注册结果
-        if (!RecvAnsRegisterMessage(client_socket))
+        if (0 >= RecvAnsRegisterMessage(client_socket))
         {
             std::cout << "Error|Receive Register Message Failed" << std::endl;
             continue;
+        }
+        else
+        {
+            std::cout << "Register successful!" << std::endl;
+            // 注册成功，不再循环，返回上层询问
+            return true;
         }
 
     }
@@ -274,12 +395,12 @@ bool Login(SOCKET client_socket)
         std::string password;
         std::getline(std::cin, password);
 
-        // 格式校验
-        if (!CheckAccountFormat(username, password))
-        {
-            std::cout << "Error | Account Format Invalid !" << std::endl;
-            continue;
-        }
+        // 格式校验 LTODO 为了平时测试，先关闭，方便登录admin
+        // if (!CheckAccountFormat(username, password))
+        // {
+        //     std::cout << "Error | Account Format Invalid !" << std::endl;
+        //     continue;
+        // }
         ordered_json _j = createOrderedJsonMessage(CIPHER, REQ_LOGIN, username, password);
         std::cout << "发送登录请求消息:\n" << _j.dump(4) << std::endl;
         // 验证登录状态
@@ -420,7 +541,7 @@ int main()
     std::cout << "INFO | 发送请求用户资料消息:\n" << req_profile.dump(4) << '\n';
     std::string profile_mes = req_profile.dump();
     send(clientSocket, profile_mes.c_str(), profile_mes.size(), 0);
-    // 接收返回结果, 包含用户资料, 加载到内存
+    // 接收返回结果, 包含用户资料
     std::string rbuffer(MESSAGE_LENGTH_1K, '\0'); // 分配足够的空间
     int ret = recv(clientSocket, &rbuffer[0], MESSAGE_LENGTH_1K, 0);
     if (ret <= 0)
@@ -428,12 +549,12 @@ int main()
         std::cout << "ERROR|Failed to receive the user profile message procedure" << '\n';
         return -1;
     }
-    else
-    {
-        std::cout << "INFO|Receive user profile message success !" << '\n';
-        std::cout << ordered_json::parse(rbuffer).dump(4) << '\n';
+    // 处理返回用户资料, 加载到内存
+    if(LOAD_USER_PROFILE_FAILURE == DealWithMessage(rbuffer)){
+        std::cout << "是否创建用户资料?" << std::endl;
+        // TODO*** 创建用户资料流程
     }
-    // TODO*** 加载到内存
+    user_profile.displayUserProfile();
 
     // 3 send
     while (1)
@@ -461,4 +582,4 @@ int main()
 // g++ -o client client.cpp -lws2_32
 // g++ client.cpp -o client.exe -I include -L . -l sqlite3 -lws2_32
 // 要带着其他自定义库文件一起编译
-// g++ -o client client.cpp ../tool/tool.cpp ../tool/jsontool.cpp ../../chat/user/user.cpp -lws2_32
+// g++ -o client client.cpp ../tool/tool.cpp ../tool/jsontool.cpp ../../chat/user/user.cpp ../../chat/user/userprofile.cpp -lws2_32
