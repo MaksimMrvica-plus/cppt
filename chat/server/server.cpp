@@ -301,15 +301,15 @@ int CreateUserProfile(const std::string& username, const ordered_json& data) {
     }
 
     sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 2, data["Nickname"].get<std::string>().c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 3, data["Gender"].get<std::string>().c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 4, data["Birthday"].get<std::string>().c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 5, data["Bio"].get<std::string>().c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 6, data["Location"].get<std::string>().c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 7, data["Occupation"].get<std::string>().c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 8, data["Interests"].get<std::string>().c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 9, data["Education"].get<std::string>().c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 10, data["Website"].get<std::string>().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, data["nickname"].get<std::string>().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, data["gender"].get<std::string>().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 4, data["birthday"].get<std::string>().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 5, data["bio"].get<std::string>().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 6, data["location"].get<std::string>().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 7, data["occupation"].get<std::string>().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 8, data["interests"].get<std::string>().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 9, data["education"].get<std::string>().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 10, data["website"].get<std::string>().c_str(), -1, SQLITE_STATIC);
 
     rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);
@@ -420,7 +420,7 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
     {
 
         // 查询user_profiles表
-        ordered_json _js;
+        ordered_json _js = ordered_json::object();
         int _ret_qup = QueryUserProfile(username, _js);
         ordered_json _ojs = createOrderedJsonMessage();
         SetOrdJsonKV(_ojs, std::make_pair("cipher", CIPHER));
@@ -451,7 +451,7 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
         ordered_json _data = j["data"];
         int _ret = CreateUserProfile(username, _data);
         ordered_json _ojs = createOrderedJsonMessage(CIPHER, ANS_CREATE_USER_PROFILE, username);
-
+        SetOrdJsonKV(_ojs, std::make_pair("data", _data)); // 把提交的资料再原样返回
         if (CREATE_USER_PROFILE_SUCCESS == _ret)
         {
             std::cout << "INFO| Create Profile Success [" << username << "]" << std::endl;
@@ -470,7 +470,7 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
         else
         {
             std::cout << "INFO| Create Profile Failed [" << username << "]" << std::endl;
-            SetOrdJsonKV(_ojs, std::make_pair("status", STATUS_FAILURE));
+            SetOrdJsonKV(_ojs, std::make_pair("status", STATUS_ERROR));
             std::string res_mes = _ojs.dump();
             send(clientSocket, res_mes.c_str(), res_mes.size(), 0);
             std::cout << "INFO| Send Message to Return Create User Profile Failure" << "\n" << _ojs.dump(4) << std::endl;
