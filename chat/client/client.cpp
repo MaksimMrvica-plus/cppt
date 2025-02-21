@@ -36,33 +36,33 @@ void GetInputString(std::string &ss, const int MAX_LENGTH = 1024)
     ss = str;
 }
 
-int updateUserProfile(UserProfile& user_profile, const ordered_json& json) {
-    if (json.contains("nickname")) {
-        user_profile.setNickname(json["nickname"]);
+int updateUserProfile(UserProfile& user_profile, const ordered_json& data) {
+    if (data.contains("nickname")) {
+        user_profile.setNickname(data["nickname"]);
     }
-    if (json.contains("gender")) {
-        user_profile.setGender(json["gender"]);
+    if (data.contains("gender")) {
+        user_profile.setGender(data["gender"]);
     }
-    if (json.contains("birthday")) {
-        user_profile.setBirthday(json["birthday"]);
+    if (data.contains("birthday")) {
+        user_profile.setBirthday(data["birthday"]);
     }
-    if (json.contains("bio")) {
-        user_profile.setBio(json["bio"]);
+    if (data.contains("bio")) {
+        user_profile.setBio(data["bio"]);
     }
-    if (json.contains("location")) {
-        user_profile.setLocation(json["location"]);
+    if (data.contains("location")) {
+        user_profile.setLocation(data["location"]);
     }
-    if (json.contains("occupation")) {
-        user_profile.setOccupation(json["occupation"]);
+    if (data.contains("occupation")) {
+        user_profile.setOccupation(data["occupation"]);
     }
-    if (json.contains("interests")) {
-        user_profile.setInterests(json["interests"]);
+    if (data.contains("interests")) {
+        user_profile.setInterests(data["interests"]);
     }
-    if (json.contains("education")) {
-        user_profile.setEducation(json["education"]);
+    if (data.contains("education")) {
+        user_profile.setEducation(data["education"]);
     }
-    if (json.contains("website")) {
-        user_profile.setWebsite(json["website"]);
+    if (data.contains("website")) {
+        user_profile.setWebsite(data["website"]);
     }
     return UPDATE_PROFILE_SUCCESS;
 }
@@ -153,6 +153,17 @@ int DealWithMessage(const std::string &ss)
         else if (STATUS_FAILURE == status){
             std::cout << "INFO | 需要创建用户资料" << std::endl;
             return LOAD_USER_PROFILE_FAILURE;
+        }
+    }
+    else if (ANS_CREATE_USER_PROFILE == type)
+    {
+        if (STATUS_SUCCESS == status){
+            std::cout << "INFO|接收返回消息成功，创建用户资料成功" << '\n';
+            return CREATE_USER_PROFILE_SUCCESS;
+        }
+        else if (STATUS_FAILURE == status){ // TODO 可以具体成数据库错误和用户资料已存在
+            std::cout << "INFO|接收返回消息成功，创建用户资料失败" << '\n';
+            return CREATE_USER_PROFILE_FAILURE;
         }
     }
     else
@@ -336,6 +347,65 @@ bool CheckLoginState(SOCKET client_socket, const std::string mes)
     return false;
 }
 
+int CreateUserProfile(ordered_json &oj)
+{
+    // 询问用户依次输入以下信息 LTODO 未来可以考虑优化为循环输入，并增加一些限制
+    // Nickname:
+    // Gender:
+    // Birthday:
+    // Bio:
+    // Location:
+    // Occupation:
+    // Interests:
+    // Education:
+    // Website:
+    std::cout << "Enter nickname: ";
+    std::string nickname;
+    std::getline(std::cin, nickname);
+    oj["nickname"] = nickname;
+
+    std::cout << "Enter gender: ";
+    std::string gender;
+    std::getline(std::cin, gender);
+    oj["gender"] = gender;
+
+    std::cout << "Enter birthday: ";
+    std::string birthday;
+    std::getline(std::cin, birthday);
+    oj["birthday"] = birthday;
+
+    std::cout << "Enter bio: ";
+    std::string bio;
+    std::getline(std::cin, bio);
+    oj["bio"] = bio;
+
+    std::cout << "Enter location: ";
+    std::string location;
+    std::getline(std::cin, location);
+    oj["location"] = location;
+
+    std::cout << "Enter occupation: ";
+    std::string occupation;
+    std::getline(std::cin, occupation);
+    oj["occupation"] = occupation;
+
+    std::cout << "Enter interests: ";
+    std::string interests;
+    std::getline(std::cin, interests);
+    oj["interests"] = interests;
+
+    std::cout << "Enter education: ";
+    std::string education;
+    std::getline(std::cin, education);
+    oj["education"] = education;
+
+    std::cout << "Enter website: ";
+    std::string website;
+    std::getline(std::cin, website);
+    oj["website"] = website;
+
+    return SUCCESS;
+}
 bool Register(SOCKET client_socket)
 {
     while (1)
@@ -552,7 +622,36 @@ int main()
     // 处理返回用户资料, 加载到内存
     if(LOAD_USER_PROFILE_FAILURE == DealWithMessage(rbuffer)){
         std::cout << "是否创建用户资料?" << std::endl;
-        // TODO*** 创建用户资料流程
+        // 创建用户资料流程
+        // 1. 创建用户资料 顺便 加载到本地
+        ordered_json ojs = {};
+        int ret = CreateUserProfile(ojs);
+        if (SUCCESS == ret){
+            // 2. 发送用户资料
+            ordered_json _j = createOrderedJsonMessage(CIPHER, REQ_CREATE_USER_PROFILE, user.getUsername());
+            SetOrdJsonKV(_j, std::make_pair("data", ojs));
+            std::string send_mes = _j.dump();
+            send(clientSocket, send_mes.c_str(), send_mes.size(), 0);
+            std::cout << "INFO|Send a message to create user profile -->>" << '\n' << _j.dump(4) << '\n';
+            // 3. 接收返回结果
+            std::string rbuffer(MESSAGE_LENGTH_1K, '\0'); // 分配足够的空间
+            int ret = recv(clientSocket, &rbuffer[0], MESSAGE_LENGTH_1K, 0);
+            if (ret <= 0)
+            {
+                std::cout << "ERROR|Failed to receive the create user profile message procedure" << '\n';
+                return -1;
+            }
+            // 处理返回用户资料, 加载到内存
+            if(CREATE_USER_PROFILE_SUCCESS == DealWithMessage(rbuffer)){
+                std::cout << "INFO|Create User Profile Success !" << '\n';
+                std::cout << "INFO|Loading User Profile ..." << '\n';
+                ordered_json _data = ordered_json::parse(rbuffer)["data"];
+                updateUserProfile(user_profile, _data);
+                
+        }else{
+            std::cout << "ERROR|Create User Profile Failed !" << '\n';
+        }
+
     }
     user_profile.displayUserProfile();
 

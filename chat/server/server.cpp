@@ -202,6 +202,38 @@ int QueryLoginInUser(const std::string& username, const std::string& password) {
     }
 }
 
+int CheckUserProfileExists(const std::string& username) {
+    sqlite3* db;
+    const char* dbPath = R"(..\..\db\user.db)";
+    
+    // 打开数据库连接
+    int rc = sqlite3_open(dbPath, &db);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
+        return SQL_ERROR;
+    }
+
+    std::string sql = "SELECT 1 FROM user_profiles WHERE username = ?;";
+    sqlite3_stmt* stmt;
+    rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return SQL_ERROR;
+    }
+
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
+
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        sqlite3_finalize(stmt);
+        return SQL_USER_PROFILE_EXIST; // 用户资料存在
+    } else {
+        sqlite3_finalize(stmt);
+        return SQL_USER_PROFILE_NOT_EXIST; // 用户资料不存在
+    }
+}
+
 int QueryUserProfile(const std::string& username, ordered_json& js) {
     sqlite3* db;
     const char* dbPath = R"(..\..\db\user.db)";
@@ -239,6 +271,54 @@ int QueryUserProfile(const std::string& username, ordered_json& js) {
         sqlite3_finalize(stmt);
         return SQL_USER_PROFILE_NOT_EXIST; // 用户资料不存在
     }
+}
+
+int CreateUserProfile(const std::string& username, const ordered_json& data) {
+    sqlite3* db;
+    const char* dbPath = R"(..\..\db\user.db)";
+
+    // 打开数据库连接
+    int rc = sqlite3_open(dbPath, &db);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
+        return SQL_ERROR;
+    }
+    // 检查是否已经存在用户资料，如果存在则返回已存在用户资料，后续提示使用更新用户资料流程
+    int ret = CheckUserProfileExists(username);
+    if (ret == SQL_USER_PROFILE_EXIST) {
+        sqlite3_close(db);
+        std::cout << "User profile already exists. Please use the update user profile process." << std::endl;
+        return SQL_USER_PROFILE_EXIST;
+    }
+
+    std::string sql = "INSERT INTO user_profiles (username, nickname, gender, birthday, bio, location, occupation, interests, education, website) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+    sqlite3_stmt* stmt;
+    rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return SQL_ERROR;
+    }
+
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, data["Nickname"].get<std::string>().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, data["Gender"].get<std::string>().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 4, data["Birthday"].get<std::string>().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 5, data["Bio"].get<std::string>().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 6, data["Location"].get<std::string>().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 7, data["Occupation"].get<std::string>().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 8, data["Interests"].get<std::string>().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 9, data["Education"].get<std::string>().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 10, data["Website"].get<std::string>().c_str(), -1, SQLITE_STATIC);
+
+    rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    if (rc != SQLITE_DONE) {
+        std::cerr << "Failed to insert new user profile: " << sqlite3_errmsg(db) << std::endl;
+        return SQL_ERROR;
+    }
+    return CREATE_USER_PROFILE_SUCCESS;
 }
 
 int DealWithMessage(const std::string &ss, SOCKET clientSocket)
@@ -336,10 +416,10 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
         }
 
     }
-    else if(REQ_USER_PROFILE == type) // 处理请求用户资料  TODO
+    else if(REQ_USER_PROFILE == type) // 处理请求用户资料  
     {
 
-        // TODO 查询user_profiles表
+        // 查询user_profiles表
         ordered_json _js;
         int _ret_qup = QueryUserProfile(username, _js);
         ordered_json _ojs = createOrderedJsonMessage();
@@ -358,12 +438,42 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
         }
         else
         {
-            // TODO 发送消息，用户资料不存在, 提示创建用户资料
+            // 发送消息，用户资料不存在, 提示创建用户资料
             std::cout << "INFO| Load Profile From DB Failed [" << username << "], Please Create Profile ..." << std::endl;
             SetOrdJsonKV(_ojs, std::make_pair("status", STATUS_FAILURE));
             std::string res_mes = _ojs.dump();
             send(clientSocket, res_mes.c_str(), res_mes.size(), 0);
             std::cout << "INFO| Send Message to Remind User to Create Profile" << "\n" << _ojs.dump(4) << std::endl;
+        }
+    }
+    else if(REQ_CREATE_USER_PROFILE == type){
+        // 创建用户资料,插入到表中
+        ordered_json _data = j["data"];
+        int _ret = CreateUserProfile(username, _data);
+        ordered_json _ojs = createOrderedJsonMessage(CIPHER, ANS_CREATE_USER_PROFILE, username);
+
+        if (CREATE_USER_PROFILE_SUCCESS == _ret)
+        {
+            std::cout << "INFO| Create Profile Success [" << username << "]" << std::endl;
+            SetOrdJsonKV(_ojs, std::make_pair("status", STATUS_SUCCESS));
+            std::string res_mes = _ojs.dump();
+            send(clientSocket, res_mes.c_str(), res_mes.size(), 0);
+            std::cout << "INFO| Send Message to Return Create User Profile Success" << "\n" << _ojs.dump(4) << std::endl;
+        }
+        else if (SQL_USER_PROFILE_EXIST == _ret){
+            std::cout << "INFO| Create Profile Failed [" << username << "], Profile Exist" << std::endl;
+            SetOrdJsonKV(_ojs, std::make_pair("status", STATUS_FAILURE));
+            std::string res_mes = _ojs.dump();
+            send(clientSocket, res_mes.c_str(), res_mes.size(), 0);
+            std::cout << "INFO| Send Message to Run Update User Profile" << "\n" << _ojs.dump(4) << std::endl;
+        }
+        else
+        {
+            std::cout << "INFO| Create Profile Failed [" << username << "]" << std::endl;
+            SetOrdJsonKV(_ojs, std::make_pair("status", STATUS_FAILURE));
+            std::string res_mes = _ojs.dump();
+            send(clientSocket, res_mes.c_str(), res_mes.size(), 0);
+            std::cout << "INFO| Send Message to Return Create User Profile Failure" << "\n" << _ojs.dump(4) << std::endl;
         }
     }
     else if(REQ_LOGOUT == type) // 处理登出请求

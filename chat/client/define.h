@@ -33,7 +33,8 @@ const std::string CIPHER_SQUARE     =  "[NXFZZB!Q#3SMB]";
 #define LOGIN_ADMIN_FAILURE       -12 
 #define LOAD_USER_PROFILE_SUCCESS   8
 #define LOAD_USER_PROFILE_FAILURE  -8
-
+#define CREATE_USER_PROFILE_SUCCESS 9
+#define CREATE_USER_PROFILE_FAILURE -9
 
 // 数据库返回码
 #define OPEN_DB_SUCCESS             1
@@ -64,7 +65,7 @@ const std::string CIPHER_SQUARE     =  "[NXFZZB!Q#3SMB]";
 #define REQ_CHAT                    "R_CHAT"
 #define REQ_GROUP                   "R_GROUP"
 #define REQ_FRIEND                  "R_FRIEND"
-
+#define REQ_CREATE_USER_PROFILE     "R_CREATE_PROFILE"
 
 // 响应 类型码
 #define ANS_USER_PROFILE            "A_PROFILE"
@@ -74,7 +75,7 @@ const std::string CIPHER_SQUARE     =  "[NXFZZB!Q#3SMB]";
 #define ANS_CHAT                    "A_CHAT"
 #define ANS_GROUP                   "A_GROUP"
 #define ANS_FRIEND                  "A_FRIEND"
-
+#define ANS_CREATE_USER_PROFILE     "A_CREATE_PROFILE"
 
 // status 状态码
 #define STATUS_SUCCESS              "SUCCESS"
