@@ -480,6 +480,11 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
     {
 
     }
+    else if(REQ_SEND_MESSAGE == type) // 处理发送消息请求
+    {
+        // TODO*** 处理发送消息请求
+
+    }
     else if(REQ_CHAT == type) // 处理聊天请求
     {
 
@@ -572,4 +577,4 @@ int main()
 // g++ -o server server.cpp -lws2_32
 // g++ -o server server.cpp -lws2_32 -lsqlite3
 
-// g++ server.cpp  ../tool/tool.cpp ../tool/jsontool.cpp ../../chat/user/user.cpp  -o server.exe -I include -L . -l sqlite3 -lws2_32 # 之后编译只要这步即可
+// g++ server.cpp  ../tool/tool.cpp ../tool/jsontool.cpp ../../chat/user/user.cpp  -o server.exe -I include -L . -l sqlite3 -lws2_32 -lrpcrt4 # 之后编译只要这步即可

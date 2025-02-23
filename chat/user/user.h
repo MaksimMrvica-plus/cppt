@@ -3,6 +3,7 @@
 
 #include <string>
 #include <ctime>
+#include <cstdint>
 #include <iostream>
 
 class USER {
@@ -29,6 +30,9 @@ public:
     // 访问器
     std::string getUserID() const { return user_id; }
     void setUserID(const std::string& id) { user_id = id; }
+
+    // 返回整型格式用户ID
+    int64_t getIntUserID() const { return std::stoll(user_id); }
 
     std::string getUsername() const { return username; }
     void setUsername(const std::string& name) { username = name; }

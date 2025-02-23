@@ -125,6 +125,31 @@ json parseJsonMessage(const std::string& jsonString)
     }
 }
 
+// 创建发送消息内容 json 数据
+ordered_json createSendMessageJson(
+    const std::string &messageId,
+    const uint64_t senderId,
+    const uint64_t receiverId,
+    const std::string &type,
+    const ordered_json &content,
+    const uint64_t timestamp, // 使用整数类型的时间戳
+    const std::string &status,
+    const uint64_t expireAt, // 使用整数类型的过期时间
+    const ordered_json &spare
+){
+    ordered_json j;
+    j["messageId"] = messageId;
+    j["senderId"] = senderId;
+    j["receiverId"] = receiverId;
+    j["type"] = type;
+    j["content"] = content;
+    j["timestamp"] = timestamp;
+    j["status"] = status;
+    j["expireAt"] = expireAt;
+    j["spare"] = spare;
+    return j;
+}
+
 // int main()
 // {
 //     // 创建一个示例 JSON 对象

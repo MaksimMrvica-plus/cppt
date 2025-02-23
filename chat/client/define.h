@@ -66,6 +66,10 @@ const std::string CIPHER_SQUARE     =  "[NXFZZB!Q#3SMB]";
 #define REQ_GROUP                   "R_GROUP"
 #define REQ_FRIEND                  "R_FRIEND"
 #define REQ_CREATE_USER_PROFILE     "R_CREATE_PROFILE"
+#define REQ_UPDATE_USER_PROFILE     "R_UPDATE_PROFILE"
+#define REQ_DELETE_USER_PROFILE     "R_DELETE_PROFILE"
+#define REQ_SEND_MESSAGE            "R_SEND_MESSAGE"
+#define REQ_RECEIVE_MESSAGE         "R_RECEIVE_MESSAGE"
 
 // 响应 类型码
 #define ANS_USER_PROFILE            "A_PROFILE"
@@ -76,6 +80,10 @@ const std::string CIPHER_SQUARE     =  "[NXFZZB!Q#3SMB]";
 #define ANS_GROUP                   "A_GROUP"
 #define ANS_FRIEND                  "A_FRIEND"
 #define ANS_CREATE_USER_PROFILE     "A_CREATE_PROFILE"
+#define ANS_UPDATE_USER_PROFILE     "A_UPDATE_PROFILE"
+#define ANS_DELETE_USER_PROFILE     "A_DELETE_PROFILE"
+#define ANS_SEND_MESSAGE            "A_SEND_MESSAGE"
+#define ANS_RECEIVE_MESSAGE         "A_RECEIVE_MESSAGE"
 
 // status 状态码
 #define STATUS_SUCCESS              "SUCCESS"

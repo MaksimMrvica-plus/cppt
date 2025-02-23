@@ -35,6 +35,24 @@ void GetInputString(std::string &ss, const int MAX_LENGTH = 1024)
     ss = str;
 }
 
+ordered_json getMutipleUserInput(){
+    ordered_json j = ordered_json::array();
+    std::string type, sub_type, data;
+    while ( "quit" != type)
+    {
+        std::cout << "Enter type for first item: ";
+        std::getline(std::cin, type);
+        if ("quit" == type)break;
+        std::cout << "Enter sub_type for first item: ";
+        std::getline(std::cin, sub_type);
+        std::cout << "Enter data for first item: ";
+        std::getline(std::cin, data);
+        j.push_back({{"type", type}, {"sub_type", sub_type}, {"data", data}, {"extra", "备用字段"}});
+    }
+
+    return j;
+}
+
 int updateUserProfile(UserProfile &user_profile, const ordered_json &data)
 {
     if (data.contains("nickname"))
@@ -702,6 +720,19 @@ int main()
     std::cout << "当前用户最新资料" << std::endl;
     user_profile.displayUserProfile();
 
+    // TODO*** 4. 聊天功能
+    ordered_json input_content = getMutipleUserInput();
+    std::cout << input_content.dump(4) << std::endl;
+    //
+    // 组装data部分
+    ordered_json data = createSendMessageJson(generate_uuid(), user.getIntUserID(), 0);
+    SetOrdJsonKV(data, std::make_pair("content", input_content));
+    ordered_json sys_mes = createOrderedJsonMessage(CIPHER, REQ_SEND_MESSAGE, user.getUsername(), "", data);
+    std::string send_mes = sys_mes.dump();
+    send(clientSocket, send_mes.c_str(), send_mes.size(), 0);
+    std::cout << "INFO|发送聊天消息 -->>" << '\n'
+              << sys_mes.dump(4) << '\n';
+    
     // 3 send
     while (1)
     {
@@ -728,4 +759,4 @@ int main()
 // g++ -o client client.cpp -lws2_32
 // g++ client.cpp -o client.exe -I include -L . -l sqlite3 -lws2_32
 // 要带着其他自定义库文件一起编译
-// g++ -o client client.cpp ../tool/tool.cpp ../tool/jsontool.cpp ../../chat/user/user.cpp ../../chat/user/userprofile.cpp -lws2_32
+// g++ -o client client.cpp ../tool/tool.cpp ../tool/jsontool.cpp ../../chat/user/user.cpp ../../chat/user/userprofile.cpp -lws2_32 -lrpcrt4
