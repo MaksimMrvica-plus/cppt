@@ -22,7 +22,7 @@ ssh -i C:/Users/SGW/Desktop/cppt/key.txt -T git@github.com
 
 
 添加\取消代理
-git config --global https.proxy http://127.0.0.1:1080
+git config --global https.proxy http://127.0.0.1:7890
 
 git config --global https.proxy https://127.0.0.1:1080
 
