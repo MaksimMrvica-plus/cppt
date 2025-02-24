@@ -569,12 +569,13 @@ int main()
     return 0;
 }
 
-// chcp 65001
+/*
 
-// #include "../tool/tool.h"
-// #include "../client/define.h"
-// #include "../../chat/user/user.h"
-// g++ -o server server.cpp -lws2_32
-// g++ -o server server.cpp -lws2_32 -lsqlite3
+chcp 65001
 
-// g++ server.cpp  ../tool/tool.cpp ../tool/jsontool.cpp ../../chat/user/user.cpp  -o server.exe -I include -L . -l sqlite3 -lws2_32 -lrpcrt4 # 之后编译只要这步即可
+g++ -o server server.cpp -lws2_32
+g++ -o server server.cpp -lws2_32 -lsqlite3
+
+g++ server.cpp  ../tool/tool.cpp ../tool/jsontool.cpp ../../chat/user/user.cpp  -o server.exe -I include -L . -l sqlite3 -lws2_32 -lrpcrt4 # 之后编译只要这步即可
+
+*/

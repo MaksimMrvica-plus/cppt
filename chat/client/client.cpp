@@ -755,8 +755,13 @@ int main()
     return 0;
 }
 
-// g++ client.cpp -o client.exe -L ../server  -l sqlite3
-// g++ -o client client.cpp -lws2_32
-// g++ client.cpp -o client.exe -I include -L . -l sqlite3 -lws2_32
-// 要带着其他自定义库文件一起编译
-// g++ -o client client.cpp ../tool/tool.cpp ../tool/jsontool.cpp ../../chat/user/user.cpp ../../chat/user/userprofile.cpp -lws2_32 -lrpcrt4
+/*
+
+g++ client.cpp -o client.exe -L ../server  -l sqlite3
+g++ -o client client.cpp -lws2_32
+g++ client.cpp -o client.exe -I include -L . -l sqlite3 -lws2_32
+要带着其他自定义库文件一起编译
+
+g++ -o client client.cpp ../tool/tool.cpp ../tool/jsontool.cpp ../../chat/user/user.cpp ../../chat/user/userprofile.cpp -lws2_32 -lrpcrt4
+
+*/
