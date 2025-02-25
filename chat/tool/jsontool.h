@@ -12,7 +12,7 @@ using ojson         = nlohmann::ordered_json;
 
 void ModifyOrAdd(json &j, const std::pair<std::string, json> &kv, int overwrite = 1); // 修改json消息 默认覆盖
 int SetJsonKV(json &j, const std::pair<std::string, json> &kv);
-int SetOrdJsonKV(ordered_json &j, const std::pair<std::string, json> &kv);
+int SetOrdJsonKV(ordered_json &j, const std::pair<std::string, ordered_json> &kv);
 
 json createJsonMessage(                    // 创建组装 JSON 消息
     const std::string &cipher = "",        // 加密信息
@@ -35,7 +35,7 @@ ordered_json createOrderedJsonMessage(     // 创建有序 JSON 消息
     const std::string &type = "",          // 请求或响应的类型
     const std::string &username = "",      // 用户名
     const std::string &password = "",      // 密码
-    const json &data = json::object(),     // 业务数据
+    const ordered_json &data = ordered_json::object(),     // 业务数据
     const std::string &time = "",          // 时间
     const std::string &timestamp = "",     // 时间戳
     const std::string &status = "",        // 请求或响应的状态

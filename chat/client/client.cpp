@@ -47,7 +47,7 @@ ordered_json getMutipleUserInput(){
         std::getline(std::cin, sub_type);
         std::cout << "Enter data for first item: ";
         std::getline(std::cin, data);
-        j.push_back({{"type", type}, {"sub_type", sub_type}, {"data", data}, {"extra", "备用字段"}});
+        j.push_back(ordered_json::object({{"type", type}, {"sub_type", sub_type}, {"data", data}, {"extra", "备用字段"}}));
     }
 
     return j;

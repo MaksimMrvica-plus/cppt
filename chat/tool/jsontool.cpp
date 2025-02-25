@@ -50,10 +50,10 @@ int SetJsonKV(json &j, const std::pair<std::string, json> &kv)
 }
 
 // 函数：修改键值对
-int SetOrdJsonKV(ordered_json &j, const std::pair<std::string, json> &kv)
+int SetOrdJsonKV(ordered_json &j, const std::pair<std::string, ordered_json> &kv)
 {
     const std::string &key = kv.first;
-    const json &value = kv.second;
+    const ordered_json &value = kv.second;
     // 检查键是否存在
     if (j.contains(key))
     {
@@ -89,7 +89,7 @@ json createJsonMessage(const std::string &cipher, const std::string &type, const
 }
 
 ordered_json createOrderedJsonMessage(const std::string &cipher, const std::string &type, const std::string &username, const std::string &password,
-                       const json &data, const std::string &time, const std::string &timestamp, const std::string &status, const std::string &error_code,
+                       const ordered_json &data, const std::string &time, const std::string &timestamp, const std::string &status, const std::string &error_code,
                        const std::string &message, const std::string &error_message, const std::string &request_id, const std::string &token, const std::string &version)
 {
     ordered_json j;
@@ -97,14 +97,14 @@ ordered_json createOrderedJsonMessage(const std::string &cipher, const std::stri
     j["type"] = type;                   // 请求或响应的类型
     j["username"] = username;           // 用户名
     j["password"] = password;           // 密码
-    j["message"] = message;             // 消息内容
+    j["data"] = data;                   // 业务数据
     j["time"] = time;                   // 时间
+    j["timestamp"] = timestamp;         // 时间戳
     j["status"] = status;               // 请求或响应的状态
     j["error_code"] = error_code;       // 错误代码
+    j["message"] = message;             // 消息内容
     j["error_message"] = error_message; // 错误信息
     j["request_id"] = request_id;       // 请求ID
-    j["timestamp"] = timestamp;         // 时间戳
-    j["data"] = data;                   // 业务数据
     j["token"] = token;                 // 身份验证令牌
     j["version"] = version;             // 协议版本号
     return j;

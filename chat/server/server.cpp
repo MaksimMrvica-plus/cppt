@@ -234,7 +234,7 @@ int CheckUserProfileExists(const std::string& username) {
     }
 }
 
-int QueryUserProfile(const std::string& username, ordered_json& js) {
+int GetUserProfile(const std::string& username, ordered_json& js) {
     sqlite3* db;
     const char* dbPath = R"(..\..\db\user.db)";
     
@@ -421,7 +421,7 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
 
         // 查询user_profiles表
         ordered_json _js = ordered_json::object();
-        int _ret_qup = QueryUserProfile(username, _js);
+        int _ret_qup = GetUserProfile(username, _js); // 查询并拉取用户资料
         ordered_json _ojs = createOrderedJsonMessage();
         SetOrdJsonKV(_ojs, std::make_pair("cipher", CIPHER));
         SetOrdJsonKV(_ojs, std::make_pair("type", ANS_USER_PROFILE));
