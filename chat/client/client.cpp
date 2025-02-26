@@ -2,23 +2,68 @@
 #include <string>
 #include <limits>
 #include <vector>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <winsock2.h>
 #include "define.h"
 #include "../tool/tool.h"
+#include "../tool/messagequeue.h"
 #include "../../chat/user/user.h"
 #include "../../chat/user/userprofile.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
+
+int DealWithMessage(const std::string &ss, SOCKET client_socket=0);
+
 // TODO 全局变量, 本地资料准备
-// 1. 加载用户资料到内存
 USER user;
 UserProfile user_profile;
-// 2. 加载聊天记录到内存
-// 3. 加载好友列表到内存
-// 4. 加载群组列表到内存
+MessageQueue<std::string> sendQueue;
+MessageQueue<std::string> recvQueue;
+
+
+void SendThread(SOCKET client_socket)
+{
+    while (true) {
+        std::string msg = sendQueue.pop();
+        int ret = send(client_socket, msg.c_str(), msg.size(), 0);
+        if (ret <= 0) {
+            std::cout << "INFO|[发送]线程: 消息发送[失败]" << '\n';
+        }
+        else{
+            std::cout << "INFO|[发送]线程: 消息发送[成功]" << '\n';
+
+        }
+    }
+}
+
+void ReceiveThread(SOCKET client_socket)
+{
+    while (true) {
+        std::string rbuffer(MESSAGE_LENGTH_1K, '\0');
+        int ret = recv(client_socket, &rbuffer[0], MESSAGE_LENGTH_1K, 0);
+        if (ret > 0) {
+            recvQueue.push(rbuffer);
+            std::cout << "INFO|[接收]线程: 消息接收[成功]" << '\n';
+        } else {
+            std::cout << "INFO|[接收]线程: 消息接收[失败]" << '\n';
+        }
+    }
+}
+void ProcessThread(SOCKET client_socket)
+{
+    while (true) {
+        std::string msg = recvQueue.pop();
+        int res_code = DealWithMessage(msg);
+        if (res_code == DEFAULT_ERROR) {
+            std::cout << "INFO|[处理]线程: 消息处理[失败]" << '\n';
+        } else {
+            std::cout << "INFO|[处理]线程: 消息处理[成功]" << '\n';
+        }
+    }
+}
 void GetInputString(std::string &ss, const int MAX_LENGTH = 1024)
 {
     std::string str{0};
@@ -34,6 +79,25 @@ void GetInputString(std::string &ss, const int MAX_LENGTH = 1024)
     }
     ss = str;
 }
+
+int ChooseOperation(){
+    int op; 
+    std::cout << "Choose Operation: " << '\n' 
+            << REGISTER << ". Register" << '\n' 
+            << LOGIN << ". Login" << '\n' 
+            << GET_PROFILE << ". Get User Profile" << '\n' 
+            << CREATE_PROFILE << ". Create User Profile" << '\n' 
+            << UPDATE_PROFILE << ". Update User Profile" << '\n' 
+            << GROUP << ". Group" << '\n' 
+            << FRIEND << ". Friend" << '\n' 
+            << CHAT << ". Chat" << '\n' 
+            << SEND_MESSAGE << ". Send Message" << '\n' 
+            << LOGOUT << ". Logout" << '\n';
+    std::cin >> op;
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    return op;
+}
+
 
 ordered_json getMutipleUserInput(){
     ordered_json j = ordered_json::array();
@@ -111,8 +175,29 @@ int SendReqRegisterMessage(SOCKET client_socket, const std::string &username, co
               << j.dump(4) << '\n';
     return SUCCESS;
 }
-
-int DealWithMessage(const std::string &ss)
+int ProcessSuccess_ANS_LOGIN(SOCKET client_socket, const ordered_json &j)
+{
+    // 登录成功, 1.设置本地变量 2.发送获取用户资料请求消息
+    // 1.设置本地变量
+    std::cout << "Login successful!" << std::endl;
+    std::string username = j["username"];
+    std::string password = j["password"];
+    user.setUsername(username);
+    user.setPassword(password);
+    if (j["username"] == "admin") // 登录成功时，用户名判断是否是管理员
+    {
+        std::cout << "INFO|接收返回消息成功，登录管理员成功" << '\n';
+    }else{
+    std::cout << "INFO|接收返回消息成功，登录普通账户成功" << '\n';
+    }
+    // 2.发送获取用户资料请求消息
+    std::cout << "Automatic Send A Message to Get UserProfile ..." << std::endl;
+    ordered_json _js = createOrderedJsonMessage(CIPHER, REQ_USER_PROFILE, username);
+    std::string res_mes = _js.dump();
+    send(client_socket, res_mes.c_str(), res_mes.size(), 0);
+    return LOGIN_SUCCESS;
+}
+int DealWithMessage(const std::string &ss, SOCKET client_socket)
 {
     std::cout << "INFO|DealWithMessage 接收数据：\n"
               << '\n';
@@ -150,17 +235,11 @@ int DealWithMessage(const std::string &ss)
     {
         if (STATUS_SUCCESS == status)
         {
-            if (j["username"] == "admin") // 登录成功时，不再返回密码，只用用户名判断是否是管理员
-            {
-                std::cout << "INFO|接收返回消息成功，登录管理员成功" << '\n';
-                return LOGIN_ADMIN_SUCCESS;
-            }
-            std::cout << "INFO|接收返回消息成功，登录普通账户成功" << '\n';
-            return LOGIN_SUCCESS;
+            return ProcessSuccess_ANS_LOGIN(client_socket, j);
         }
         else
         {
-            std::cout << "INFO|接收返回消息成功，登录失败" << '\n';
+            std::cout << "INFO|接收返回消息成功，登录失败，可能需要重新登录" << '\n';
             return LOGIN_FAILURE;
         }
     }
@@ -359,39 +438,7 @@ bool CheckAccountFormat(const std::string &name, const std::string &pass)
     return flag;
 }
 
-bool CheckLoginState(SOCKET client_socket, const std::string mes)
-{
-    // 发送
-    send(client_socket, mes.c_str(), mes.size(), 0);
-    std::cout << "INFO|Send a message to login..." << '\n';
-    // 接收结果 (没有服务侧创建，返回真，否则返回假)
-    std::string rbuffer(MESSAGE_LENGTH_1K, '\0'); // 分配足够的空间
-    int ret = recv(client_socket, &rbuffer[0], MESSAGE_LENGTH_1K, 0);
-    if (ret <= 0)
-    {
-        std::cout << "ERROR|Failed to receive the login message procedure" << '\n';
-        return false;
-    }
-    // 对返回结果进行解析，成功/失败
-    int res_code = DealWithMessage(rbuffer);
-    if (LOGIN_SUCCESS == res_code or LOGIN_ADMIN_SUCCESS == res_code)
-    {
-        std::cout << "INFO|Login successed" << '\n';
-        return true;
-    }
-    else if (LOGIN_FAILURE == res_code)
-    {
-        std::cout << "ERROR|Login failed" << '\n';
-        return false;
-    }
-    else
-    {
-        std::cout << "ERROR|Login Failed Unknown Reason" << '\n';
-        return false;
-    }
-
-    return false;
-}
+bool CheckLoginState(SOCKET client_socket, const std::string mes);
 
 int CreateUserProfile(ordered_json &oj)
 {
@@ -497,8 +544,6 @@ bool Register(SOCKET client_socket)
 
 bool Login(SOCKET client_socket)
 {
-    while (1)
-    {
         std::cout << "Enter username: ";
         std::string username;
         std::getline(std::cin, username);
@@ -519,43 +564,17 @@ bool Login(SOCKET client_socket)
         ordered_json _j = createOrderedJsonMessage(CIPHER, REQ_LOGIN, username, password);
         std::cout << "发送登录请求消息:\n"
                   << _j.dump(4) << std::endl;
-        // 验证登录状态
-        if (!CheckLoginState(client_socket, _j.dump()))
-        {
-            std::cout << "Error : Username or Password error !" << std::endl;
-            continue;
-        }
-        else
-        { // 登录成功
-            std::cout << "Login successful!" << std::endl;
-            // TODO 加载用户资料到内存 (应该要放到主程序里了)
-            std::cout << "Load Profile ..." << std::endl;
-            user.setUsername(username);
-            user.setPassword(password);
-            return true;
-        }
-    }
-    return false;
+        std::string mes = _j.dump();
+        // 发送
+        send(client_socket, mes.c_str(), mes.size(), 0);
+    return true;
 }
+
+
 
 int RegisterOrLogin(SOCKET client_socket)
 {
-    /*
-    r or l:
-        l:
-            input
-            return
-                true
-                    load profile
-                false
-                    again
-                    -> r
-        r:
-            input
-            return
-                success
-                fail
-    */
+
     while (1)
     {
         std::cout << "Enter 'r' to register, 'l' to login, or 'quit' to exit: ";
@@ -623,6 +642,56 @@ SOCKET InitializeClientSocket()
     }
 
     return clientSocket;
+}
+
+
+int DealWithOperation(int opt, SOCKET client_socket){
+    if (REGISTER == opt)
+    {
+        return Register(client_socket);
+    }
+    else if (LOGIN == opt)
+    {
+        return Login(client_socket);
+    }
+    else if (GET_PROFILE == opt)
+    {
+        //return GetProfile(client_socket);
+    }
+    else if (CREATE_PROFILE == opt)
+    {
+        //return CreateProfile(client_socket);
+    }
+    else if (UPDATE_PROFILE == opt)
+    {
+        //return UpdateProfile(client_socket);
+    }
+    else if (GROUP == opt)
+    {
+        //return Group(client_socket);
+    }
+    else if (FRIEND == opt)
+    {
+        //return Friend(client_socket);
+    }
+    else if (CHAT == opt)
+    {
+        //return Chat(client_socket);
+    }
+    else if (SEND_MESSAGE == opt)
+    {
+        //return SDmessage(client_socket);
+    }
+    else if (LOGOUT == opt)
+    {
+        //return Logout(client_socket);
+    }
+    else
+    {
+        std::cout << "Invalid Operation" << '\n';
+        return DEFAULT_ERROR;
+    }
+    return DEFAULT_ERROR;
 }
 
 int main()
@@ -733,6 +802,28 @@ int main()
     std::cout << "INFO|发送聊天消息 -->>" << '\n'
               << sys_mes.dump(4) << '\n';
     
+    // 多线程，发送和接收
+    // Create send and receive threads
+    std::thread send_thread(SendThread, clientSocket);
+    std::thread receive_thread(ReceiveThread, clientSocket);
+    std::thread process_thread(ProcessThread, clientSocket);
+    while (1){ // 进入用户操作循环
+        // 1 询问用户选择操作，
+        int opt = ChooseOperation();
+        // 2 进入相应流程,匹配对应消息
+        int ret = DealWithOperation(opt, clientSocket);
+        if (DEFAULT_ERROR == ret)
+        {
+            std::cout << "Choose Invalid Operation" << '\n';
+            continue;
+        }
+
+    }
+
+    // Wait for threads to finish
+    send_thread.join();
+    receive_thread.join();
+    process_thread.join();
     // 3 send
     while (1)
     {
