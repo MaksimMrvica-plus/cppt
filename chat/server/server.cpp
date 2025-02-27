@@ -371,7 +371,7 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
         if (REGISTER_SUCCESS == _ret)
         {
             std::cout << "INFO| Register User Success [" << username << "]" << std::endl;
-            ordered_json _js = createOrderedJsonMessage();
+            ordered_json _js = createSystemOrdJsonMessage();
             SetOrdJsonKV(_js, std::make_pair("cipher", CIPHER));
             SetOrdJsonKV(_js, std::make_pair("type", ANS_REGISTER));
             SetOrdJsonKV(_js, std::make_pair("username", username));
@@ -385,7 +385,7 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
         else if (SQL_USER_EXIST == _ret)
         {
             std::cout << "INFO| Register User Failed [" << username << "], User Exist" << std::endl;
-            ordered_json _js = createOrderedJsonMessage();
+            ordered_json _js = createSystemOrdJsonMessage();
             SetOrdJsonKV(_js, std::make_pair("cipher", CIPHER));
             SetOrdJsonKV(_js, std::make_pair("type", ANS_REGISTER));
             SetOrdJsonKV(_js, std::make_pair("username", username));
@@ -399,7 +399,7 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
         else
         {
             std::cout << "INFO| Register User Failed [" << username << "], Unknown Reason" << std::endl;
-            ordered_json _js = createOrderedJsonMessage();
+            ordered_json _js = createSystemOrdJsonMessage();
             SetOrdJsonKV(_js, std::make_pair("cipher", CIPHER));
             SetOrdJsonKV(_js, std::make_pair("type", ANS_REGISTER));
             SetOrdJsonKV(_js, std::make_pair("username", username));
@@ -414,7 +414,7 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
     }
     else if(REQ_LOGIN == type) // 处理登录请求
     {
-        ordered_json j = createOrderedJsonMessage();    // 预组装返回消息
+        ordered_json j = createSystemOrdJsonMessage();    // 预组装返回消息
         SetOrdJsonKV(j, std::make_pair("cipher", CIPHER));
         SetOrdJsonKV(j, std::make_pair("type", ANS_LOGIN));
         SetOrdJsonKV(j, std::make_pair("username", username));
@@ -453,7 +453,7 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
         // 查询user_profiles表
         ordered_json _js = ordered_json::object();
         int _ret_qup = GetUserProfile(username, _js); // 查询并拉取用户资料
-        ordered_json _ojs = createOrderedJsonMessage();
+        ordered_json _ojs = createSystemOrdJsonMessage();
         SetOrdJsonKV(_ojs, std::make_pair("cipher", CIPHER));
         SetOrdJsonKV(_ojs, std::make_pair("type", ANS_USER_PROFILE));
         SetOrdJsonKV(_ojs, std::make_pair("username", username));
@@ -481,7 +481,7 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
         // 创建用户资料,插入到表中
         ordered_json _data = j["data"];
         int _ret = CreateUserProfile(username, _data);
-        ordered_json _ojs = createOrderedJsonMessage(CIPHER, ANS_CREATE_USER_PROFILE, username);
+        ordered_json _ojs = createSystemOrdJsonMessage(CIPHER, ANS_CREATE_USER_PROFILE, username);
         SetOrdJsonKV(_ojs, std::make_pair("data", _data)); // 把提交的资料再原样返回
         if (CREATE_USER_PROFILE_SUCCESS == _ret)
         {

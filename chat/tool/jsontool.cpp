@@ -88,7 +88,7 @@ json createJsonMessage(const std::string &cipher, const std::string &type, const
     return j;
 }
 
-ordered_json createOrderedJsonMessage(const std::string &cipher, const std::string &type, const std::string &username, const std::string &password,
+ordered_json createSystemOrdJsonMessage(const std::string &cipher, const std::string &type, const std::string &username, const std::string &password,
                        const ordered_json &data, const std::string &time, const std::string &timestamp, const std::string &status, const std::string &error_code,
                        const std::string &message, const std::string &error_message, const std::string &request_id, const std::string &token, const std::string &version)
 {
@@ -150,6 +150,30 @@ ordered_json createSendMessageJson(
     return j;
 }
 
+// 创建发送消息内容 json 数据
+ordered_json createSendPerMsgJson(
+    const std::string &messageId,
+    const uint64_t senderId,
+    const uint64_t receiverId,
+    const std::string &type,
+    const ordered_json &content,
+    const uint64_t timestamp, // 使用整数类型的时间戳
+    const std::string &status,
+    const uint64_t expireAt, // 使用整数类型的过期时间
+    const ordered_json &spare
+){
+    ordered_json j;
+    j["messageId"] = messageId;
+    j["senderId"] = senderId;
+    j["receiverId"] = receiverId;
+    j["type"] = type;
+    j["content"] = content;
+    j["timestamp"] = timestamp;
+    j["status"] = status;
+    j["expireAt"] = expireAt;
+    j["spare"] = spare;
+    return j;
+}
 // int main()
 // {
 //     // 创建一个示例 JSON 对象
