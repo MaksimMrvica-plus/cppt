@@ -196,6 +196,9 @@ int ProcessSuccess_ANS_LOGIN(SOCKET client_socket, const ordered_json &j)
     {
         std::cout << "INFO|接收返回消息成功，登录普通账户成功" << '\n';
     }
+    uint64_t _uid = j["data"]["user_id"];
+    user.setUserID(_uid);
+    std::cout <<"设置USERID成功" << std::endl;
     // 2.发送获取用户资料请求消息
     std::cout << "Automatic Send A Message to Get UserProfile ..." << std::endl;
     ordered_json _js = createSystemOrdJsonMessage(CIPHER, REQ_USER_PROFILE, username);
@@ -655,7 +658,7 @@ std::string ChooseSendFriend()
     return ss;
 }
 
-u_int64 getUserIDfromUsername(const std::string &uname, std::unordered_map<std::string, u_int64> &user_id_map)
+uint64_t getUserIDfromUsername(const std::string &uname, std::unordered_map<std::string, uint64_t> &user_id_map)
 {
     return user_id_map[uname];
 }
@@ -670,8 +673,8 @@ int SendMessagePer()
     // 组装data部分
     // TODO**** 这个使用ID号，后续添加用 username的映射，客户端维护一个username和id映射表，在登录时，添加返回一个自身id号，获取好友列表时，也同时让服务侧返回对应id，储存在客户端侧。
     std::string msg_uuid = generate_uuid();
-    u_int64 send_id = user.getIntUserID();
-    u_int64 recv_id = getUserIDfromUsername(uname, TEST_USED_user2id);
+    uint64_t send_id = user.getIntUserID();
+    uint64_t recv_id = getUserIDfromUsername(uname, TEST_USED_user2id);
     ordered_json data = createSendPerMsgJson(msg_uuid, send_id, recv_id, "text_test");
     SetOrdJsonKV(data, std::make_pair("content", input_content));
     // 3 组装完整系统消息
@@ -707,6 +710,10 @@ int DealWithOperation(int opt, SOCKET client_socket)
         // return UpdateProfile(client_socket);
     }
     else if (SEND_MESSAGE == opt)
+    {
+        // return 
+    }
+    else if (SEND_PERSON_MESSAGE == opt)
     {
         return SendMessagePer();
     }

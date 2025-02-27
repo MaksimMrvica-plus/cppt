@@ -3,7 +3,7 @@
 #include <iomanip>
 #include <stdio.h>
 // 构造函数的实现
-USER::USER(const std::string& user_id,
+USER::USER(const uint64_t user_id,
            const std::string& username,
            const std::string& password, 
            const std::string& email,
@@ -13,7 +13,7 @@ USER::USER(const std::string& user_id,
           register_time(register_time), last_login_time(last_login_time) {}
 // displayUserInfo 的实现
 void USER::displayUserInfo() const {
-    std::cout << "User ID: " << getUserID() << std::endl;
+    std::cout << "User ID: " << getStrUserID() << std::endl;
     std::cout << "Username: " << getUsername() << std::endl;
     std::cout << "Password: " << "****************" << std::endl; // 隐藏密码
     std::cout << "Email: " << getEmail() << std::endl;

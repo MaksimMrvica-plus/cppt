@@ -9,7 +9,7 @@
 class USER {
 private:
     // 成员变量
-    std::string user_id;         // 用户ID，自增主键
+    uint64_t user_id;         // 用户ID，自增主键
     std::string username;        // 用户名，唯一
     std::string password;        // 密码（加密存储）
     std::string email;           // 邮箱（可选）
@@ -17,7 +17,7 @@ private:
     std::string last_login_time; // 最后登录时间
 public:
     // 构造函数
-    USER(const std::string& user_id = "0",
+    USER(const uint64_t user_id = 0,
         const std::string& username = "",
         const std::string& password = "", 
         const std::string& email = "",
@@ -28,11 +28,12 @@ public:
     void displayUserInfo() const;
     void updateLastLoginTime();
     // 访问器
-    std::string getUserID() const { return user_id; }
-    void setUserID(const std::string& id) { user_id = id; }
+    // 返回整数UserIDD
+    uint64_t getIntUserID() const { return user_id; }
+    // 返回字符串形式UserID
+    std::string getStrUserID() const { return std::to_string(user_id); }
+    void setUserID(uint64_t id) { user_id = id; }
 
-    // 返回整型格式用户ID
-    int64_t getIntUserID() const { return std::stoll(user_id); }
 
     std::string getUsername() const { return username; }
     void setUsername(const std::string& name) { username = name; }

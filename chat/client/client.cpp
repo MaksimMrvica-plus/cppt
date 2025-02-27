@@ -7,7 +7,7 @@ UserProfile user_profile;
 MessageQueue<std::string> sendQueue;
 MessageQueue<std::string> recvQueue;
 std::unordered_map<std::string, u_int64> user2id;
-std::unordered_map<std::string, u_int64> TEST_USED_user2id = {{"admin", 0},{"alllallll",9}};
+std::unordered_map<std::string, u_int64> TEST_USED_user2id = {{"admin", 1},{"alllallll",9}};
 std::unordered_set<std::string> TEST_USED_friend_username_uord_set = {"admin","alllallll"};
 
 
