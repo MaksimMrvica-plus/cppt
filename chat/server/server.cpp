@@ -1,12 +1,41 @@
 #include <iostream>
 #include <string>
+#include <unordered_map>
 #include <winsock2.h>
 #include <vector>
+#include <thread>
+#include <mutex>
 #include "sqlite3.h"
 #include "../tool/tool.h"
 #include "../client/define.h"
 #include "../../chat/user/user.h"
 #pragma comment(lib, "ws2_32.lib")
+
+
+
+std::unordered_map<std::string, SOCKET> userSocketMap;
+std::mutex mapMutex;
+
+void AddUserSocketMapping(const std::string& username, SOCKET clientSocket) {
+    std::lock_guard<std::mutex> lock(mapMutex);
+    userSocketMap[username] = clientSocket;
+}
+
+void RemoveUserSocketMapping(const std::string& username) {
+    std::lock_guard<std::mutex> lock(mapMutex);
+    userSocketMap.erase(username);
+}
+
+SOCKET GetUserSocket(const std::string& username) {
+    std::lock_guard<std::mutex> lock(mapMutex);
+    if (userSocketMap.find(username) != userSocketMap.end()) {
+        return userSocketMap[username];
+    }
+    return INVALID_SOCKET;
+}
+
+
+
 
 SOCKET InitializeServerSocket()
 {
@@ -412,6 +441,8 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
             std::string res_mes = j.dump();
             std::cout << "INFO| return user profile 发送登录应答消息:" << "\n" << j.dump(4) << std::endl; 
             send(clientSocket, res_mes.c_str(), res_mes.size(), 0);
+            AddUserSocketMapping(username, clientSocket); // 添加用户与套接字的映射
+            std::cout << "INFO| 添加映射 [" << username << "] -> [" << clientSocket << "]" << std::endl;
             return LOGIN_SUCCESS;
         }
 
@@ -482,7 +513,16 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
     }
     else if(REQ_SEND_MESSAGE == type) // 处理发送消息请求
     {
-        // TODO*** 处理发送消息请求
+        // TODO***  处理发送消息请求
+        std::string targetUser = j["targetUser"];
+        std::string message = j["message"];
+        SOCKET targetSocket = GetUserSocket(targetUser);
+        if (targetSocket != INVALID_SOCKET) {
+            send(targetSocket, message.c_str(), message.size(), 0);
+            std::cout << "INFO| Message sent to [" << targetUser << "]" << std::endl;
+        } else {
+            std::cout << "ERROR| Target user [" << targetUser << "] not online" << std::endl;
+        }
 
     }
     else if(REQ_CHAT == type) // 处理聊天请求

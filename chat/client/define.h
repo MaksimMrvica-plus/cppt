@@ -100,5 +100,5 @@ const std::string CIPHER_SQUARE = "[NXFZZB!Q#3SMB]";
 #define GET_PROFILE 8
 #define UPDATE_PROFILE 9
 #define LOGOUT 10
-
+#define DISPLAY_PROFILE 11
 #endif
