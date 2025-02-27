@@ -30,7 +30,7 @@ json createJsonMessage(                    // 创建组装 JSON 消息
     const std::string &token = "",         // 身份验证令牌
     const std::string &version = ""        // 协议版本号
 );
-ordered_json createOrderedJsonMessage(     // 创建有序 JSON 消息
+ordered_json createSystemOrdJsonMessage(     // 创建有序 JSON 消息
     const std::string &cipher = "",        // 加密信息
     const std::string &type = "",          // 请求或响应的类型
     const std::string &username = "",      // 用户名
@@ -60,4 +60,19 @@ ordered_json createSendMessageJson(
     const ordered_json &spare = ordered_json::object()
 );
 
+// 创建发送给 个人的 消息内容 json 数据
+ordered_json createSendPerMsgJson(
+    const std::string &messageId = "",
+    const uint64_t senderId = 0,
+    const uint64_t receiverId = 0,
+    const std::string &type ="",
+    const ordered_json &content = ordered_json::object(),
+    const uint64_t timestamp = 0, // 使用整数类型的时间戳
+    const std::string &status = "",
+    const uint64_t expireAt = 0, // 使用整数类型的过期时间
+    const ordered_json &spare = ordered_json::object()
+);
+
+// 创建发送给 群组的 消息内容 json 数据
+ordered_json createSendGrpMsgJson();
 #endif
