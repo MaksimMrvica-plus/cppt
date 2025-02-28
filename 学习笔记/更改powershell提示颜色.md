@@ -28,8 +28,6 @@ function Prompt {
 
 6. 查看配置文件路径：
 $PROFILE
-<<<<<<< HEAD
-=======
 
 
 powershell 运行脚本权限：
@@ -44,4 +42,3 @@ Set-ExecutionPolicy Unrestricted
 3. 没有管理员权限时可以用：
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 Set-ExecutionPolicy -Scope CurrentUser Unrestricted
->>>>>>> 0b3d94a12887fea97b6ea828b473dfc09b3d90df
