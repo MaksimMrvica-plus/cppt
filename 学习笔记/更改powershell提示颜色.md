@@ -28,3 +28,20 @@ function Prompt {
 
 6. 查看配置文件路径：
 $PROFILE
+<<<<<<< HEAD
+=======
+
+
+powershell 运行脚本权限：
+1. 查看策略
+Get-ExecutionPolicy
+2. 更改执行策略 
+这将允许本地脚本运行，但要求从互联网下载的脚本必须经过签名：
+Set-ExecutionPolicy RemoteSigned
+
+如果你希望允许所有脚本运行，可以使用 Unrestricted：
+Set-ExecutionPolicy Unrestricted
+3. 没有管理员权限时可以用：
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+Set-ExecutionPolicy -Scope CurrentUser Unrestricted
+>>>>>>> 0b3d94a12887fea97b6ea828b473dfc09b3d90df

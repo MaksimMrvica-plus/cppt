@@ -26,7 +26,7 @@ const std::string CIPHER_SQUARE = "[NXFZZB!Q#3SMB]";
 #define CIPHER_ERROR -998
 #define REGISTER_SUCCESS 7
 #define REGISTER_FAILURE -7
-#define LOGIN_SUCCESS -9
+#define LOGIN_SUCCESS 9
 #define LOGIN_FAILURE -10
 #define LOGIN_QUIT -11
 #define LOGIN_ADMIN_SUCCESS 12
@@ -44,7 +44,7 @@ const std::string CIPHER_SQUARE = "[NXFZZB!Q#3SMB]";
 // SQL用户账号查询返回码
 #define SQL_ERROR -1
 #define SQL_USER_EXIST 1
-#define SQL_USER_NOT_EXIST 2
+#define SQL_USER_NOT_EXIST -2
 #define SQL_USER_PASSWORD_ERROR -3
 #define SQL_USER_PASSWORD_CORRECT 4
 
