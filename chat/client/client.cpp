@@ -7,8 +7,8 @@ UserProfile user_profile;
 MessageQueue<std::string> sendQueue;
 MessageQueue<std::string> recvQueue;
 std::unordered_map<std::string, u_int64> user2id;
-std::unordered_map<std::string, u_int64> TEST_USED_user2id = {{"admin", 1},{"alllallll",9}};
-std::unordered_set<std::string> TEST_USED_friend_username_uord_set = {"admin","alllallll"};
+std::unordered_map<std::string, u_int64> TEST_USED_user2id = {{"admin", 1},{"alllallll",9},{"test3",666}};
+std::unordered_set<std::string> TEST_USED_friend_username_uord_set = {"admin","alllallll","test1","test2"};
 
 
 int main()
@@ -22,19 +22,6 @@ int main()
         return SOCKET_ERROR;
     }
 
-    // // 2. 注册、登录验证
-    // int log_ret = RegisterOrLogin(clientSocket);
-    // if (LOGIN_QUIT == log_ret or LOGIN_FAILURE == log_ret)
-    // {
-    //     std::cout << "取消 注册or登录, 即将退出程序..." << std::endl;
-    //     Sleep(3 * 1000); // 休眠3s
-    //     closesocket(clientSocket);
-    //     return LOGIN_QUIT; // 用户主动取消登录，返回 11
-    // }
-    // else
-    // {
-    //     std::cout << "登录成功，等待加载用户资料..." << std::endl;
-    // }
 
     // // 3. 加载用户资料到本地
     // // 发送资料请求消息
@@ -67,7 +54,7 @@ int main()
     //         // 创建用户资料流程
     //         // 1. 创建用户资料
     //         ordered_json ojs = {};
-    //         int ret = CreateUserProfile(ojs);
+    //         int ret = InputUserProfile(ojs);
     //         if (SUCCESS == ret)
     //         {
     //             // 2. 发送创建用户资料消息
@@ -131,7 +118,7 @@ int main()
         int opt = ChooseOperation();
         // 2 进入相应流程,匹配对应消息
         int ret = DealWithOperation(opt, clientSocket);
-        if (DEFAULT_ERROR == ret)
+        if (CHOOSE_OPERATION_ERROR == ret)
         {
             std::cout << "Choose Invalid Operation" << '\n';
             continue;
@@ -173,5 +160,6 @@ g++ client.cpp -o client.exe -I include -L . -l sqlite3 -lws2_32
 要带着其他自定义库文件一起编译
 
 g++ -o client client.cpp ../tool/tool.cpp ../tool/clitool.cpp ../tool/jsontool.cpp ../../chat/user/user.cpp ../../chat/user/userprofile.cpp -lws2_32 -lrpcrt4
+
 
 */

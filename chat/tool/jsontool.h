@@ -73,6 +73,19 @@ ordered_json createSendPerMsgJson(
     const ordered_json &spare = ordered_json::object()
 );
 
+// 个人资料格式
+ordered_json createUserProfileJson(
+    const std::string &nickname = "",
+    const std::string &gender = "",
+    const std::string &birthday = "",
+    const std::string &bio = "",
+    const std::string &location = "",
+    const std::string &occupation = "",
+    const std::string &interests = "",
+    const std::string &education = "",
+    const std::string &website = ""
+);
+
 // 创建发送给 群组的 消息内容 json 数据
 ordered_json createSendGrpMsgJson();
 #endif

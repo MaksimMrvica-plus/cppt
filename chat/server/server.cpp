@@ -457,11 +457,7 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
     }
     else if (REQ_LOGIN == type) // 处理登录请求
     {
-<<<<<<< HEAD
-        ordered_json j = createSystemOrdJsonMessage();    // 预组装返回消息
-=======
         ordered_json j = createSystemOrdJsonMessage(); // 预组装返回消息
->>>>>>> 0b3d94a12887fea97b6ea828b473dfc09b3d90df
         SetOrdJsonKV(j, std::make_pair("cipher", CIPHER));
         SetOrdJsonKV(j, std::make_pair("type", ANS_LOGIN));
         SetOrdJsonKV(j, std::make_pair("username", username));
@@ -521,6 +517,7 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
             send(clientSocket, res_mes.c_str(), res_mes.size(), 0);
             std::cout << "INFO| Send Message to Return User Profile" << "\n"
                       << _ojs.dump(4) << std::endl;
+            return SQL_USER_PROFILE_EXIST;
         }
         else
         {
@@ -531,6 +528,7 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
             send(clientSocket, res_mes.c_str(), res_mes.size(), 0);
             std::cout << "INFO| Send Message to Remind User to Create Profile" << "\n"
                       << _ojs.dump(4) << std::endl;
+            return SQL_USER_PROFILE_NOT_EXIST;
         }
     }
     else if (REQ_CREATE_USER_PROFILE == type)
@@ -548,6 +546,7 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
             send(clientSocket, res_mes.c_str(), res_mes.size(), 0);
             std::cout << "INFO| Send Message to Return Create User Profile Success" << "\n"
                       << _ojs.dump(4) << std::endl;
+            return CREATE_USER_PROFILE_SUCCESS;
         }
         else if (SQL_USER_PROFILE_EXIST == _ret)
         {
@@ -557,6 +556,7 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
             send(clientSocket, res_mes.c_str(), res_mes.size(), 0);
             std::cout << "INFO| Send Message to Run Update User Profile" << "\n"
                       << _ojs.dump(4) << std::endl;
+            return CREATE_USER_PROFILE_FAILURE;
         }
         else
         {
@@ -566,10 +566,18 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
             send(clientSocket, res_mes.c_str(), res_mes.size(), 0);
             std::cout << "INFO| Send Message to Return Create User Profile Failure" << "\n"
                       << _ojs.dump(4) << std::endl;
+            return CREATE_USER_PROFILE_FAILURE;
         }
     }
     else if (REQ_LOGOUT == type) // 处理登出请求
     {
+        // 返回消息可能不需要 TODO~
+        // 移除用户的在线映射
+        std::cout << "INFO|用户登出，移除相关映射关系 " << std::endl;
+        std::cout << "INFO| Remove User [" << username << "] From Online Map" << std::endl;
+        RemoveUnameAndSocketMap(username);
+        // 用户名 和 ID 好像不需要移除，否则会对其他人发来消息性能有影响
+        return LOGOUT_SUCCESS;
     }
     else if (REQ_SEND_MESSAGE == type) // 处理发送消息请求
     {

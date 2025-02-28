@@ -1,6 +1,5 @@
 #include "clitool.h"
 
-
 void SendThread(SOCKET client_socket)
 {
     while (true)
@@ -83,7 +82,9 @@ int ChooseOperation()
               << SEND_PERSON_MESSAGE << ". Send Message Per" << '\n'
               << SEND_GROUP_MESSAGE << ". Send Message Grp" << '\n'
               << LOGOUT << ". Logout" << '\n'
+              << DISPLAY_USER_INFO << ". Display User Account Info" << '\n'
               << DISPLAY_PROFILE << ". Display Profile" << '\n'
+              << DISPLAY_FRIEND << ". Display Friend List" << '\n'
               << "Enter your choice: ";
     std::cin >> op;
     if (std::cin.fail())
@@ -120,7 +121,20 @@ ordered_json getMutipleUserInputJson()
     return j;
 }
 
-int updateUserProfile(UserProfile &user_profile, const ordered_json &data)
+int DeleteLocalData()
+{
+    user = USER();
+    user_profile = UserProfile();
+    // 清空下面这些全局变量
+    sendQueue.clear();
+    recvQueue.clear();
+    user2id.clear();
+    TEST_USED_user2id.clear();
+    TEST_USED_friend_username_uord_set.clear();
+
+    return SUCCESS;
+}
+int SetLocalUserProfile(UserProfile &user_profile, const ordered_json &data)
 {
     if (data.contains("nickname"))
     {
@@ -158,7 +172,7 @@ int updateUserProfile(UserProfile &user_profile, const ordered_json &data)
     {
         user_profile.setWebsite(data["website"]);
     }
-    std::cout << "INFO| Update User Profile [Success] !" << '\n';
+    std::cout << "INFO| set Local User Profile [Success] !" << '\n';
     return UPDATE_PROFILE_SUCCESS;
 }
 
@@ -179,6 +193,23 @@ int SendReqRegisterMessage(SOCKET client_socket, const std::string &username, co
               << j.dump(4) << '\n';
     return SUCCESS;
 }
+
+int SendReqLogoutMessage(SOCKET client_socket)
+{
+    // 创建一个 JSON 对象
+    ordered_json j = createSystemOrdJsonMessage(CIPHER, REQ_LOGOUT, user.getUsername());
+    // 发送
+    std::string send_mes = j.dump();
+    int ret = send(client_socket, send_mes.c_str(), send_mes.size(), 0);
+    if (ret <= 0)
+    {
+        std::cout << "ERROR|Failed to send the [logout] message procedure" << '\n';
+        return FAILURE;
+    }
+    std::cout << "INFO|Send a message to [logout] -->>" << '\n'
+              << j.dump(4) << '\n';
+    return SUCCESS;
+}
 int ProcessSuccess_ANS_LOGIN(SOCKET client_socket, const ordered_json &j)
 {
     // 登录成功, 1.设置本地变量 2.发送获取用户资料请求消息
@@ -188,6 +219,7 @@ int ProcessSuccess_ANS_LOGIN(SOCKET client_socket, const ordered_json &j)
     std::string password = j["password"];
     user.setUsername(username);
     user.setPassword(password);
+    user.setUserStatus(ONLINE);   // 默认自动设置成在线状态
     if (j["username"] == "admin") // 登录成功时，用户名判断是否是管理员
     {
         std::cout << "INFO|接收返回消息成功，登录管理员成功" << '\n';
@@ -196,12 +228,9 @@ int ProcessSuccess_ANS_LOGIN(SOCKET client_socket, const ordered_json &j)
     {
         std::cout << "INFO|接收返回消息成功，登录普通账户成功" << '\n';
     }
-<<<<<<< HEAD
-=======
     uint64_t _uid = j["data"]["user_id"];
     user.setUserID(_uid);
-    std::cout <<"设置USERID成功" << std::endl;
->>>>>>> 0b3d94a12887fea97b6ea828b473dfc09b3d90df
+    std::cout << "设置USERID成功" << std::endl;
     // 2.发送获取用户资料请求消息
     std::cout << "Automatic Send A Message to Get UserProfile ..." << std::endl;
     ordered_json _js = createSystemOrdJsonMessage(CIPHER, REQ_USER_PROFILE, username);
@@ -263,9 +292,11 @@ int DealWithMessage(const std::string &ss, SOCKET client_socket)
             std::cout << "INFO|接收返回消息成功，获取用户资料成功" << '\n';
             // 加载到内存
             ordered_json data = j["data"];
-            if (UPDATE_PROFILE_SUCCESS == updateUserProfile(user_profile, data))
+            if (UPDATE_PROFILE_SUCCESS == SetLocalUserProfile(user_profile, data))
             {
                 std::cout << "INFO | Update User Profile [Success] !" << '\n';
+                std::cout << "INFO | 自动" ;
+                user_profile.displayUserProfile();
             }
             else
             {
@@ -284,6 +315,10 @@ int DealWithMessage(const std::string &ss, SOCKET client_socket)
         if (STATUS_SUCCESS == status)
         {
             std::cout << "INFO|接收返回消息成功，创建用户资料成功" << '\n';
+            // 创建成功，同时加载到本地
+            SetLocalUserProfile(user_profile, j["data"]);
+            std::cout << "创建后自动";
+            user_profile.displayUserProfile();
             return CREATE_USER_PROFILE_SUCCESS;
         }
         else if (STATUS_FAILURE == status)
@@ -420,7 +455,7 @@ bool CheckAccountFormat(const std::string &name, const std::string &pass)
 
 bool CheckLoginState(SOCKET client_socket, const std::string mes);
 
-int CreateUserProfile(ordered_json &oj)
+int InputUserProfile(ordered_json &oj)
 {
     // 询问用户依次输入以下信息 LTODO 未来可以考虑优化为循环输入，并增加一些限制
     // Nickname:
@@ -481,6 +516,7 @@ int CreateUserProfile(ordered_json &oj)
 }
 bool Register(SOCKET client_socket)
 {
+
     std::cout << "Enter username: ";
     std::string username;
     std::getline(std::cin, username);
@@ -509,13 +545,7 @@ bool Register(SOCKET client_socket)
 
 bool Login(SOCKET client_socket)
 {
-    // 检查是否已经登录
-    if (!user.getUsername().empty())
-    {
-        // 已经登录
-        std::cout << "ERROR | 已处于登录状态！" << user.getUsername() << std::endl;
-        return false;
-    }
+
     std::cout << "Enter username: ";
     std::string username;
     std::getline(std::cin, username);
@@ -542,6 +572,13 @@ bool Login(SOCKET client_socket)
     return true;
 }
 
+int Logout(SOCKET client_socket)
+{
+
+    SendReqLogoutMessage(client_socket);
+    // 清空用户信息
+    return DeleteLocalData();
+}
 int RegisterOrLogin(SOCKET client_socket)
 {
 
@@ -638,11 +675,27 @@ std::unordered_set<std::string> GetFriendUsernameUordSet()
 
 void ShowFriendUsernameList(std::unordered_set<std::string> &us)
 {
+    if (!HasLoggedIn()){
+        std::cout << "ERROR | 未登录，无法查看好友列表" << std::endl;
+        return;
+    }
     std::cout << "=============================好友列表：用户名=============================";
     for (auto it = us.begin(); it != us.end(); ++it)
     {
         std::cout << *it << '\n';
     }
+}
+
+int CreateUserProfile(){
+    ordered_json uprofile = createUserProfileJson();
+    InputUserProfile(uprofile);
+    // 2. 发送创建用户资料消息
+    ordered_json _j = createSystemOrdJsonMessage(CIPHER, REQ_CREATE_USER_PROFILE, user.getUsername(), "", uprofile);
+    std::string send_mes = _j.dump();
+    send(clientSocket, send_mes.c_str(), send_mes.size(), 0);
+    std::cout << "INFO|Send a message to create user profile -->>" << '\n'
+                << _j.dump(4) << '\n';
+    return SUCCESS;
 }
 std::string ChooseSendFriend()
 {
@@ -661,16 +714,13 @@ std::string ChooseSendFriend()
     return ss;
 }
 
-<<<<<<< HEAD
-u_int64 getUserIDfromUsername(const std::string &uname, std::unordered_map<std::string, u_int64> &user_id_map)
-=======
 uint64_t getUserIDfromUsername(const std::string &uname, std::unordered_map<std::string, uint64_t> &user_id_map)
->>>>>>> 0b3d94a12887fea97b6ea828b473dfc09b3d90df
 {
     return user_id_map[uname];
 }
 int SendMessagePer()
 {
+
     // 发送消息给单个用户
     // 1 选择用户
     std::string uname = ChooseSendFriend();
@@ -680,13 +730,8 @@ int SendMessagePer()
     // 组装data部分
     // TODO**** 这个使用ID号，后续添加用 username的映射，客户端维护一个username和id映射表，在登录时，添加返回一个自身id号，获取好友列表时，也同时让服务侧返回对应id，储存在客户端侧。
     std::string msg_uuid = generate_uuid();
-<<<<<<< HEAD
-    u_int64 send_id = user.getIntUserID();
-    u_int64 recv_id = getUserIDfromUsername(uname, TEST_USED_user2id);
-=======
     uint64_t send_id = user.getIntUserID();
     uint64_t recv_id = getUserIDfromUsername(uname, TEST_USED_user2id);
->>>>>>> 0b3d94a12887fea97b6ea828b473dfc09b3d90df
     ordered_json data = createSendPerMsgJson(msg_uuid, send_id, recv_id, "text_test");
     SetOrdJsonKV(data, std::make_pair("content", input_content));
     // 3 组装完整系统消息
@@ -703,19 +748,42 @@ int DealWithOperation(int opt, SOCKET client_socket)
 {
     if (REGISTER == opt)
     {
+        // 检查是否已经登录
+        if (HasLoggedIn())
+        {
+            // 已经登录
+            std::cout << "ERROR | 已处于登录状态，请登出后再 注册，当前用户：" << user.getUsername() << std::endl;
+            return false;
+        }
         return Register(client_socket);
     }
     else if (LOGIN == opt)
     {
+        // 检查是否已经登录
+        if (HasLoggedIn())
+        {// 已经登录
+            std::cout << "ERROR | 已处于登录状态！ 当前用户：" << user.getUsername() << std::endl;
+            return false;
+        }
         return Login(client_socket);
     }
     else if (GET_PROFILE == opt)
     {
+        if (!HasLoggedIn())
+        {
+            std::cout << "ERROR | 请先登录，再获取资料" << user.getUsername() << std::endl;
+            return false;
+        }
         GetProfile(user.getUsername());
     }
     else if (CREATE_PROFILE == opt)
     {
-        // return CreateProfile(client_socket);
+        if (!HasLoggedIn())
+        {
+            std::cout << "ERROR | 请先登录，再创建资料" << user.getUsername() << std::endl;
+            return false;
+        }
+        return CreateUserProfile();
     }
     else if (UPDATE_PROFILE == opt)
     {
@@ -723,13 +791,15 @@ int DealWithOperation(int opt, SOCKET client_socket)
     }
     else if (SEND_MESSAGE == opt)
     {
-<<<<<<< HEAD
-=======
-        // return 
+        // return
     }
     else if (SEND_PERSON_MESSAGE == opt)
     {
->>>>>>> 0b3d94a12887fea97b6ea828b473dfc09b3d90df
+        if (!HasLoggedIn())
+        {
+            std::cout << "ERROR | 未登录，无法发送消息" << std::endl;
+            return DEFAULT_ERROR;
+        }
         return SendMessagePer();
     }
     else if (GROUP == opt)
@@ -746,16 +816,54 @@ int DealWithOperation(int opt, SOCKET client_socket)
     }
     else if (LOGOUT == opt)
     {
-        // return Logout(client_socket);
+        if (!HasLoggedIn())
+        {
+            std::cout << "ERROR | 未登录，无法登出" << std::endl;
+            return LOGOUT_FAILURE;
+        }
+        return Logout(client_socket);
+    }
+    else if (DISPLAY_USER_INFO == opt)
+    {
+        if (!HasLoggedIn())
+        {
+            std::cout << "ERROR | 无法展示账户信息，请先登录！" << std::endl;
+            return DEFAULT_ERROR;
+        }
+        std::cout << "===========用户账户信息===========";
+        user.displayUserInfo();
+        return SUCCESS;
     }
     else if (DISPLAY_PROFILE == opt)
     {
+        if (!HasLoggedIn())
+        {
+            std::cout << "ERROR | 无法展示资料信息，请先登录！" << std::endl;
+            return DEFAULT_ERROR;
+        }
         user_profile.displayUserProfile();
+        return SUCCESS;
+    }
+    else if (DISPLAY_FRIEND == opt)
+    {
+        if (!HasLoggedIn())
+        {
+            std::cout << "ERROR | 无法展示好友列表，请先登录！" << std::endl;
+            return DEFAULT_ERROR;
+        }
+        std::unordered_set<std::string> uname_set = GetFriendUsernameUordSet();
+        ShowFriendUsernameList(uname_set);
+        return SUCCESS;
     }
     else
     {
-        std::cout << "Invalid Operation" << '\n';
-        return DEFAULT_ERROR;
+        std::cout << "Invalid Operation, Redirect again" << '\n';
+        return CHOOSE_OPERATION_ERROR;
     }
-    return DEFAULT_ERROR;
+    return CHOOSE_OPERATION_ERROR;
+}
+
+bool HasLoggedIn()
+{
+    return !user.getUsername().empty();
 }

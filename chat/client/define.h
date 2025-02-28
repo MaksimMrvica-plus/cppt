@@ -26,11 +26,13 @@ const std::string CIPHER_SQUARE = "[NXFZZB!Q#3SMB]";
 #define CIPHER_ERROR -998
 #define REGISTER_SUCCESS 7
 #define REGISTER_FAILURE -7
-#define LOGIN_SUCCESS 9
+#define LOGIN_SUCCESS 10
 #define LOGIN_FAILURE -10
 #define LOGIN_QUIT -11
 #define LOGIN_ADMIN_SUCCESS 12
 #define LOGIN_ADMIN_FAILURE -12
+#define LOGOUT_SUCCESS 13
+#define LOGOUT_FAILURE -13
 #define LOAD_USER_PROFILE_SUCCESS 8
 #define LOAD_USER_PROFILE_FAILURE -8
 #define CREATE_USER_PROFILE_SUCCESS 9
@@ -105,4 +107,24 @@ const std::string CIPHER_SQUARE = "[NXFZZB!Q#3SMB]";
 #define UPDATE_PROFILE 9
 #define LOGOUT 10
 #define DISPLAY_PROFILE 11
+#define DISPLAY_USER_INFO 12
+#define DISPLAY_FRIEND 13
+
+#define CHOOSE_OPERATION_ERROR -2312
+
+// 用户当前在线状态
+#define OFFLINE 0
+#define ONLINE 1
+#define HIDDEN 2
+#define BUSY 3
+#define AWAY 4
+#define INVISIBLE 5
+
+#define LOGGING 3
+
+
+
+
+
+
 #endif

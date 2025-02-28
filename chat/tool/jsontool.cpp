@@ -174,6 +174,32 @@ ordered_json createSendPerMsgJson(
     j["spare"] = spare;
     return j;
 }
+
+ordered_json createUserProfileJson(
+    const std::string &nickname,
+    const std::string &gender,
+    const std::string &birthday,
+    const std::string &bio,
+    const std::string &location,
+    const std::string &occupation,
+    const std::string &interests,
+    const std::string &education,
+    const std::string &website
+) {
+    ordered_json j;
+    j["nickname"] = nickname;
+    j["gender"] = gender;
+    j["birthday"] = birthday;
+    j["bio"] = bio;
+    j["location"] = location;
+    j["occupation"] = occupation;
+    j["interests"] = interests;
+    j["education"] = education;
+    j["website"] = website;
+    return j;
+}
+
+
 // int main()
 // {
 //     // 创建一个示例 JSON 对象
