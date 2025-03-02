@@ -54,6 +54,7 @@ public:
 
     std::string getLastLoginTime() const { return last_login_time; }
     void setLastLoginTime(const std::string& time) { last_login_time = time; }
+    
     int getUserStatus(){return status;}
     std::string getUserStatusStr() const;
     void setUserStatus(int status){this->status=status;}

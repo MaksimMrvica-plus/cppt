@@ -69,22 +69,24 @@ void GetInputString(std::string &ss, const int MAX_LENGTH = 1024)
 int ChooseOperation()
 {
     int op;
-    std::cout << "Choose Operation: " << '\n'
-              << REGISTER << ". Register" << '\n'
-              << LOGIN << ". Login" << '\n'
-              << GET_PROFILE << ". Get User Profile" << '\n'
-              << CREATE_PROFILE << ". Create User Profile" << '\n'
-              << UPDATE_PROFILE << ". Update User Profile" << '\n'
-              << GROUP << ". Group" << '\n'
-              << FRIEND << ". Friend" << '\n'
-              << CHAT << ". Chat" << '\n'
-              << SEND_MESSAGE << ". Send Message" << '\n'
-              << SEND_PERSON_MESSAGE << ". Send Message Per" << '\n'
-              << SEND_GROUP_MESSAGE << ". Send Message Grp" << '\n'
-              << LOGOUT << ". Logout" << '\n'
-              << DISPLAY_USER_INFO << ". Display User Account Info" << '\n'
-              << DISPLAY_PROFILE << ". Display Profile" << '\n'
-              << DISPLAY_FRIEND << ". Display Friend List" << '\n'
+    std::cout << "================Choose Operation================" << '\n'
+              << "|| \t" << REGISTER << ". Register" << '\n'
+              << "|| \t" << LOGIN << ". Login" << '\n'
+              << "|| \t" << GET_PROFILE << ". Get User Profile" << '\n'
+              << "|| \t" << CREATE_PROFILE << ". Create User Profile" << '\n'
+              << "|| \t" << UPDATE_PROFILE << ". Update User Profile" << '\n'
+              << "|| \t" << GROUP << ". Group" << '\n'
+              << "|| \t" << FRIEND << ". Friend" << '\n'
+              << "|| \t" << CHAT << ". Chat" << '\n'
+              << "|| \t" << SEND_MESSAGE << ". Send Message" << '\n'
+              << "|| \t" << SEND_PERSON_MESSAGE << ". Send Message Per" << '\n'
+              << "|| \t" << SEND_GROUP_MESSAGE << ". Send Message Grp" << '\n'
+              << "|| \t" << LOGOUT << ". Logout" << '\n'
+              << "|| \t" << DISPLAY_USER_INFO << ". Display User Account Info" << '\n'
+              << "|| \t" << DISPLAY_PROFILE << ". Display Profile" << '\n'
+              << "|| \t" << DISPLAY_FRIEND << ". Display Friend List" << '\n'
+              << "|| \t" << CHANGE_STATUS << ". Change Your Status" << '\n'
+              << "================================================" << '\n'
               << "Enter your choice: ";
     std::cin >> op;
     if (std::cin.fail())
@@ -295,7 +297,7 @@ int DealWithMessage(const std::string &ss, SOCKET client_socket)
             if (UPDATE_PROFILE_SUCCESS == SetLocalUserProfile(user_profile, data))
             {
                 std::cout << "INFO | Update User Profile [Success] !" << '\n';
-                std::cout << "INFO | 自动" ;
+                std::cout << "INFO | 自动";
                 user_profile.displayUserProfile();
             }
             else
@@ -633,7 +635,7 @@ SOCKET InitializeClientSocket()
 
     sockaddr_in target = {0};
     target.sin_family = AF_INET;
-    target.sin_port = htons(8080);                        // 大小端转换
+    target.sin_port = htons(CLIENT_PORT);                 // 大小端转换
     target.sin_addr.S_un.S_addr = inet_addr("127.0.0.1"); // 字符串ip 转 整数ip
 
     // 2 connect
@@ -675,7 +677,8 @@ std::unordered_set<std::string> GetFriendUsernameUordSet()
 
 void ShowFriendUsernameList(std::unordered_set<std::string> &us)
 {
-    if (!HasLoggedIn()){
+    if (!HasLoggedIn())
+    {
         std::cout << "ERROR | 未登录，无法查看好友列表" << std::endl;
         return;
     }
@@ -686,7 +689,8 @@ void ShowFriendUsernameList(std::unordered_set<std::string> &us)
     }
 }
 
-int CreateUserProfile(){
+int CreateUserProfile()
+{
     ordered_json uprofile = createUserProfileJson();
     InputUserProfile(uprofile);
     // 2. 发送创建用户资料消息
@@ -694,9 +698,69 @@ int CreateUserProfile(){
     std::string send_mes = _j.dump();
     send(clientSocket, send_mes.c_str(), send_mes.size(), 0);
     std::cout << "INFO|Send a message to create user profile -->>" << '\n'
-                << _j.dump(4) << '\n';
+              << _j.dump(4) << '\n';
     return SUCCESS;
 }
+int QueryUpdateProfileItem(ordered_json &change_profile)
+{
+    bool flag = false;
+    while (1)
+    {
+        int choice;
+        std::cout << "===========选择要更新的资料项===========" << '\n'
+                  << "|| \t 0. 退出" << '\n'
+                  << "|| \t 1. 昵称 Nickname" << '\n'
+                  << "|| \t 2. 性别 Gender" << '\n'
+                  << "|| \t 3. 生日 Birthday" << '\n'
+                  << "|| \t 4. 简介 Bio" << '\n'
+                  << "|| \t 5. 位置 Location" << '\n'
+                  << "|| \t 6. 职业 Occupation" << '\n'
+                  << "|| \t 7. 兴趣 Interests" << '\n'
+                  << "|| \t 8. 教育 Education" << '\n'
+                  << "|| \t 9. 网站 Website" << '\n'
+                  << "===========选择要更新的资料项===========" << '\n';
+        if (!getRangeNumberInput(choice, 0, 9))
+        {
+            std::cout << "输入错误！" << '\n';
+            continue;;
+        }
+        if (0 == choice)
+        {
+            if (flag){
+                std::cout << "退出, 用户做出了修改" << '\n';
+                return SUCCESS;
+            }
+            std::cout << "退出, 用户未做出修改" << '\n';
+            return FAILURE;
+        }
+        std::cout << "请输入要更新资料内容" << ": \n";
+        std::string ss;
+        std::getline(std::cin, ss);
+        // LTODO 检查输入合法性
+        flag = true;
+        std::vector<std::string> choice_str = {"", "nickname", "gender", "birthday", "bio", "location", "occupation", "interests", "education", "website"};
+        change_profile[choice_str[choice]] = ss;
+    }
+    return SUCCESS;
+}
+
+int UpdateUserProfile()
+{
+    ordered_json change_profile;
+    if (SUCCESS != QueryUpdateProfileItem(change_profile))
+    {
+        std::cout << "ERROR | 更新资料失败" << std::endl;
+        return FAILURE;
+    }
+    // 2. 发送更新用户资料消息
+    ordered_json _j = createSystemOrdJsonMessage(CIPHER, REQ_UPDATE_USER_PROFILE, user.getUsername(), "", change_profile);
+    std::string send_mes = _j.dump();
+    send(clientSocket, send_mes.c_str(), send_mes.size(), 0);
+    std::cout << "INFO|Send a message to update user profile -->>" << '\n'
+              << _j.dump(4) << '\n';
+    return SUCCESS;
+}
+
 std::string ChooseSendFriend()
 {
     std::unordered_set<std::string> uname_set = GetFriendUsernameUordSet();
@@ -761,7 +825,7 @@ int DealWithOperation(int opt, SOCKET client_socket)
     {
         // 检查是否已经登录
         if (HasLoggedIn())
-        {// 已经登录
+        { // 已经登录
             std::cout << "ERROR | 已处于登录状态！ 当前用户：" << user.getUsername() << std::endl;
             return false;
         }
@@ -780,14 +844,19 @@ int DealWithOperation(int opt, SOCKET client_socket)
     {
         if (!HasLoggedIn())
         {
-            std::cout << "ERROR | 请先登录，再创建资料" << user.getUsername() << std::endl;
+            std::cout << "ERROR | 请先登录，再创建资料" << std::endl;
             return false;
         }
         return CreateUserProfile();
     }
     else if (UPDATE_PROFILE == opt)
     {
-        // return UpdateProfile(client_socket);
+        if (!HasLoggedIn())
+        {
+            std::cout << "ERROR | 请先登录，再更新资料" << std::endl;
+            return false;
+        }
+        return UpdateUserProfile();
     }
     else if (SEND_MESSAGE == opt)
     {
@@ -855,6 +924,17 @@ int DealWithOperation(int opt, SOCKET client_socket)
         ShowFriendUsernameList(uname_set);
         return SUCCESS;
     }
+    else if (CHANGE_STATUS == opt)
+    {
+        if (!HasLoggedIn())
+        {
+            std::cout << "ERROR | 无法改变在线状态，请先登录！" << std::endl;
+            return DEFAULT_ERROR;
+        }
+        // 改变在线状态
+        ChangeUserStatus();
+        return SUCCESS;
+    }
     else
     {
         std::cout << "Invalid Operation, Redirect again" << '\n';
@@ -863,7 +943,73 @@ int DealWithOperation(int opt, SOCKET client_socket)
     return CHOOSE_OPERATION_ERROR;
 }
 
+int ChangeUserStatus()
+{
+    std::cout << "===================================================\n"
+              << "||           Enter the new status (0-5):          ||\n"
+              << "||           0: OFFLINE                           ||\n"
+              << "||           1: ONLINE                            ||\n"
+              << "||           2: HIDDEN                            ||\n"
+              << "||           3: BUSY                              ||\n"
+              << "||           4: AWAY                              ||\n"
+              << "||           5: INVISIBLE                         ||\n"
+              << "===================================================\n";
+
+    int new_status;
+    if (!getRangeNumberInput(new_status, 0, 5))
+    {
+        std::cout << "ERROR | 状态修改失败，输入无效" << std::endl;
+        return FAILURE;
+    }
+
+    user.setUserStatus(new_status);
+    std::cout << "INFO | 状态修改成功" << std::endl;
+    return SUCCESS;
+}
+
+// 获取用户输入的数字，带有范围检查
+bool getNumberInput(int &num)
+{
+    int input;
+
+    std::cout << "请输入一个数字: \n";
+    if (!(std::cin >> input))
+    {
+        std::cin.clear();                                                   // 清除错误状态
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // 清空输入缓冲区
+        std::cout << "ERROR | 输入无效，请输入数字" << std::endl;
+        return false;
+    }
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // 清空输入缓冲区中剩余的内容
+    num = input;
+    return true;
+}
+// 获取用户输入的数字，带有范围检查
+bool getRangeNumberInput(int &num, int min_value, int max_value)
+{
+    int input;
+    std::cout << "请输入一个数字: [" << min_value << " ~ " << max_value << "]\n";
+    if (!(std::cin >> input))
+    {
+        std::cin.clear();                                                   // 清除错误状态
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // 清空输入缓冲区
+        std::cout << "ERROR | 输入无效，请输入数字" << std::endl;
+        return false;
+    }
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // 清空输入缓冲区中剩余的内容
+
+    if (input < min_value || input > max_value)
+    {
+        std::cout << "ERROR | 输入值超出范围，请输入 " << min_value << "-" << max_value << " 之间的数字" << std::endl;
+        return false;
+    }
+    num = input;
+    return true;
+}
+
+// 检查处在登录状态
 bool HasLoggedIn()
 {
-    return !user.getUsername().empty();
+    // 不能用 user.status 来判断，因为 这个是一个可以由用户更改的 展现状态，而不是 登录状态
+    return not user.getUsername().empty();
 }

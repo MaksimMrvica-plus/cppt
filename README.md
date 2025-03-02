@@ -48,4 +48,9 @@ webchat
         ⚠️10.2.1 服务端将用户从在线表中移除
     ✖️10.3 直接进行本地一些数据清理
 
+12. Display User Account Info
 11. Display Profile
+13. Display Friend List
+14. Change Your Status
+    ✅14.1 改变的只是展示状态，并非真正的状态
+    14.2 发送到服务器消息，服务器会将假状态更新，并广播给所有在线用户

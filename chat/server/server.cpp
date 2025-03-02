@@ -63,7 +63,7 @@ SOCKET InitializeServerSocket()
     // 2. 绑定套接字
     sockaddr_in local = {0};
     local.sin_family = AF_INET;
-    local.sin_port = htons(8080);                   // 大小端转换
+    local.sin_port = htons(SERVER_PORT);            // 大小端转换
     local.sin_addr.S_un.S_addr = htonl(INADDR_ANY); // 接收地址
 
     if (bind(listenSocket, (struct sockaddr *)&local, sizeof(local)) == SOCKET_ERROR)
@@ -390,6 +390,110 @@ int CreateUserProfile(const std::string &username, const ordered_json &data)
     return CREATE_USER_PROFILE_SUCCESS;
 }
 
+int UpdateUserProfileToDB(const std::string &username, const ordered_json &_data)
+{
+    sqlite3 *db;
+    const char *dbPath = R"(..\..\db\user.db)";
+
+    // 打开数据库连接
+    int rc = sqlite3_open(dbPath, &db);
+    if (rc != SQLITE_OK)
+    {
+        std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
+        return SQL_ERROR;
+    }
+
+    // 检查用户资料是否存在
+    int ret = CheckUserProfileExists(username);
+    if (ret == SQL_USER_PROFILE_NOT_EXIST)
+    {
+        sqlite3_close(db);
+        return SQL_USER_PROFILE_NOT_EXIST;
+    }
+
+    // 获取表的列名和数据类型
+    std::unordered_map<std::string, std::string> columnTypeMap;
+    std::string sql = "PRAGMA table_info(user_profiles);";
+    sqlite3_stmt *stmt;
+    rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return SQL_ERROR;
+    }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        std::string columnName = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
+        std::string columnType = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
+        columnTypeMap[columnName] = columnType;
+    }
+    sqlite3_finalize(stmt);
+
+    // 更新用户资料
+    sql = "UPDATE user_profiles SET ";
+    bool first = true;
+    for (auto &item : _data.items())
+    {
+        const std::string &key = item.key();
+        const std::string &value = item.value();
+
+        // 检查key是否在表中
+        if (columnTypeMap.find(key) == columnTypeMap.end())
+            continue;
+
+        // 检查类型是否匹配
+        if (columnTypeMap[key] == "TEXT" && !item.value().is_string())
+            continue;
+        if (columnTypeMap[key] == "INTEGER" && !item.value().is_number_integer())
+            continue;
+
+        if (!first)
+            sql += ", ";
+        sql += key + " = ?";
+        first = false;
+    }
+    sql += " WHERE username = ?;";
+
+    rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare update statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return SQL_ERROR;
+    }
+
+    int index = 1;
+    for (auto &item : _data.items())
+    {
+        const std::string &key = item.key();
+        const std::string &value = item.value();
+
+        if (columnTypeMap.find(key) == columnTypeMap.end())
+            continue;
+
+        if (columnTypeMap[key] == "TEXT")
+            sqlite3_bind_text(stmt, index++, value.c_str(), -1, SQLITE_STATIC);
+        else if (columnTypeMap[key] == "INTEGER")
+            sqlite3_bind_int(stmt, index++, item.value().get<int>());
+    }
+    sqlite3_bind_text(stmt, index, username.c_str(), -1, SQLITE_STATIC);
+
+    rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    if (rc != SQLITE_DONE)
+    {
+        std::cerr << "Failed to update user profile: " << sqlite3_errmsg(db) << std::endl;
+        return UPDATE_USER_PROFILE_FAILURE;
+    }
+
+    return UPDATE_USER_PROFILE_SUCCESS;
+}
+
+
 int DealWithMessage(const std::string &ss, SOCKET clientSocket)
 {
     std::cout << "INFO|DealWithMessage" << '\n';
@@ -569,6 +673,45 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
             return CREATE_USER_PROFILE_FAILURE;
         }
     }
+    else if (REQ_UPDATE_USER_PROFILE == type) // 处理更新用户资料请求
+    {
+        // 更新用户资料
+        ordered_json _data = j["data"];
+        int _ret = UpdateUserProfileToDB(username, _data);
+        ordered_json _ojs = createSystemOrdJsonMessage(CIPHER, ANS_UPDATE_USER_PROFILE, username);
+
+        if (UPDATE_USER_PROFILE_SUCCESS == _ret)
+        {
+            std::cout << "INFO| Update Profile Success [" << username << "]" << std::endl;
+            SetOrdJsonKV(_ojs, std::make_pair("status", STATUS_SUCCESS));
+            std::string res_mes = _ojs.dump();
+            send(clientSocket, res_mes.c_str(), res_mes.size(), 0);
+            std::cout << "INFO| Send Message to Return Update User Profile Success" << "\n"
+                      << _ojs.dump(4) << std::endl;
+            return UPDATE_USER_PROFILE_SUCCESS;
+        }
+        else if (SQL_USER_PROFILE_NOT_EXIST == _ret)
+        {
+            std::cout << "INFO| Update Profile Failed [" << username << "], Profile Not Exist" << std::endl;
+            SetOrdJsonKV(_ojs, std::make_pair("status", STATUS_FAILURE));
+            std::string res_mes = _ojs.dump();
+            send(clientSocket, res_mes.c_str(), res_mes.size(), 0);
+            std::cout << "INFO| Send Message to Run Create User Profile" << "\n"
+                      << _ojs.dump(4) << std::endl;
+            return UPDATE_USER_PROFILE_FAILURE;
+        }
+        else // (UPDATE_USER_PROFILE_FAILURE == _ret) or (SQL_ERROR == _ret) 数据库问题或其他问题
+        {
+            std::cout << "INFO| Update Profile Failed [" << username << "]" << std::endl;
+            SetOrdJsonKV(_ojs, std::make_pair("status", STATUS_ERROR));
+            std::string res_mes = _ojs.dump();
+            send(clientSocket, res_mes.c_str(), res_mes.size(), 0);
+            std::cout << "INFO| Send Message to Return Update User Profile Failure" << "\n"
+                      << _ojs.dump(4) << std::endl;
+            return UPDATE_USER_PROFILE_FAILURE;
+        }
+        return DEFAULT_ERROR;
+    }
     else if (REQ_LOGOUT == type) // 处理登出请求
     {
         // 返回消息可能不需要 TODO~
@@ -626,8 +769,19 @@ DWORD WINAPI ThreadFunc(LPVOID lpThreadParameter)
         if (ret <= 0)
             break;
         std::cout << "接收消息来自接口ID :" << clientSocket << std::endl;
-        DealWithMessage(buffer, clientSocket);
-        // TODO 处理各种消息逻辑
+
+        try
+        {
+            DealWithMessage(buffer, clientSocket);
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "处理消息时发生异常: " << e.what() << std::endl;
+        }
+        catch (...)
+        {
+            std::cerr << "处理消息时发生未知异常" << std::endl;
+        }
 
         // 复读机
         // std::string str = std::string(buffer);
