@@ -1,5 +1,25 @@
 #include "clitool.h"
 
+
+// 重新连接函数, 使用这个函数会导致，多次连接，多次退出
+void Reconnect()
+{
+    while (true)
+    {
+        clientSocket = InitializeClientSocket();
+        if (INVALID_SOCKET != clientSocket)
+        {
+            std::cout << "INFO|[主]线程: 重新连接成功" << '\n';
+            break;
+        }
+        else
+        {
+            std::cout << "INFO|[主]线程: 重新连接失败，等待5秒后重试..." << '\n';
+            std::this_thread::sleep_for(std::chrono::seconds(5));
+        }
+    }
+}
+
 void SendThread(SOCKET client_socket)
 {
     while (true)
@@ -31,6 +51,26 @@ void ReceiveThread(SOCKET client_socket)
         else
         {
             std::cout << "INFO|[接收]线程: 消息接收[失败]" << '\n';
+            // 关闭当前套接字
+            closesocket(client_socket);
+            std::cout << "INFO|[接收]线程: 连接已断开，尝试重新连接..." << '\n';
+            // 尝试重新连接
+            {
+                while (true)
+                {
+                    clientSocket = InitializeClientSocket();
+                    if (INVALID_SOCKET != clientSocket)
+                    {
+                        std::cout << "INFO|[主]线程: 重新连接成功" << '\n';
+                        break;
+                    }
+                    else
+                    {
+                        std::cout << "INFO|[主]线程: 重新连接失败，等待5秒后重试..." << '\n';
+                        std::this_thread::sleep_for(std::chrono::seconds(5));
+                    }
+                }
+            }
         }
     }
 }
