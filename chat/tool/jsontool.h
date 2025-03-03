@@ -63,8 +63,8 @@ ordered_json createSendMessageJson(
 // 创建发送给 个人的 消息内容 json 数据
 ordered_json createSendPerMsgJson(
     const std::string &messageId = "",
-    const uint64_t senderId = 0,
-    const uint64_t receiverId = 0,
+    const std::string &sender="",
+    const std::string &receiver="",
     const std::string &type ="",
     const ordered_json &content = ordered_json::object(),
     const uint64_t timestamp = 0, // 使用整数类型的时间戳
@@ -86,6 +86,7 @@ ordered_json createUserProfileJson(
     const std::string &website = ""
 );
 
+void ParseAndPrintContentArray(const ordered_json &content);
 // 创建发送给 群组的 消息内容 json 数据
 ordered_json createSendGrpMsgJson();
 #endif

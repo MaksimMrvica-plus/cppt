@@ -291,6 +291,10 @@ int CheckUserProfileExists(const std::string &username)
     }
 }
 
+bool CheckUserOnline(const std::string &username){
+    return username2socket_map.find(username) != username2socket_map.end();
+}
+
 int GetUserProfile(const std::string &username, ordered_json &js)
 {
     sqlite3 *db;
@@ -719,24 +723,33 @@ int DealWithMessage(const std::string &ss, SOCKET clientSocket)
         std::cout << "INFO|用户登出，移除相关映射关系 " << std::endl;
         std::cout << "INFO| Remove User [" << username << "] From Online Map" << std::endl;
         RemoveUnameAndSocketMap(username);
-        // 用户名 和 ID 好像不需要移除，否则会对其他人发来消息性能有影响
+        // 用户名 和 ID 好像不需要移除，否则会对其他人发来消息性能有影响，相当于本地缓存活跃用户ID
         return LOGOUT_SUCCESS;
     }
     else if (REQ_SEND_MESSAGE == type) // 处理发送消息请求
     {
-        // TODO***  处理发送消息请求
-        std::string targetUser = j["targetUser"];
-        std::string message = j["message"];
-        SOCKET targetSocket = GetUserSocket(targetUser);
-        if (targetSocket != INVALID_SOCKET)
-        {
-            send(targetSocket, message.c_str(), message.size(), 0);
-            std::cout << "INFO| Message sent to [" << targetUser << "]" << std::endl;
+        std::cout << "功能未提供" << std::endl;
+    }
+    else if (REQ_SEND_MESSAGE_PER == type)
+    {
+        // TODO***  
+        std::string targetUser = j["data"]["receiver"];
+        ordered_json tmp_oj(j);
+        SetOrdJsonKV(tmp_oj, std::make_pair("type", ANS_SEND_MESSAGE_PER));
+        std::string tmpss = tmp_oj.dump();
+        std::cout << "INFO|用户发送私聊消息给 [" << targetUser << "]" << std::endl;
+
+        // 检查用户是否在线
+        if (CheckUserOnline(targetUser)){
+            std::cout << "INFO|用户 [" << targetUser << "] 在线, 直接发送私聊消息\n" << tmp_oj.dump(4) << std::endl;
+            SOCKET targetSocket = GetUserSocket(targetUser);
+            send(targetSocket, tmpss.c_str(), tmpss.size(), 0); // ss 原内容不需要改变
         }
-        else
-        {
-            std::cout << "ERROR| Target user [" << targetUser << "] not online" << std::endl;
+        else{
+            // 不在线，发送到数据库逻辑
+            std::cout << "INFO|用户 [" << targetUser << "] 离线, 储存到数据库\n";
         }
+
     }
     else if (REQ_CHAT == type) // 处理聊天请求
     {

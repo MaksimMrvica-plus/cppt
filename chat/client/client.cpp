@@ -8,7 +8,7 @@ MessageQueue<std::string> sendQueue;
 MessageQueue<std::string> recvQueue;
 std::unordered_map<std::string, u_int64> user2id;
 std::unordered_map<std::string, u_int64> TEST_USED_user2id = {{"admin", 1},{"alllallll",9},{"test3",666}};
-std::unordered_set<std::string> TEST_USED_friend_username_uord_set = {"admin","alllallll","test1","test2"};
+std::unordered_set<std::string> TEST_USED_friend_username_uord_set = {"admin","alllallll","test1","test2","apt"};
 
 
 int main()
@@ -23,88 +23,6 @@ int main()
     }
 
 
-    // // 3. 加载用户资料到本地
-    // // 发送资料请求消息
-    // ordered_json req_profile = createSystemOrdJsonMessage(CIPHER, "R_PROFILE", user.getUsername());
-    // std::cout << "INFO | 发送请求用户资料消息:\n"
-    //           << req_profile.dump(4) << '\n';
-    // std::string profile_mes = req_profile.dump();
-    // send(clientSocket, profile_mes.c_str(), profile_mes.size(), 0);
-    // // 接收返回结果, 包含用户资料
-    // std::string rbuffer(MESSAGE_LENGTH_1K, '\0'); // 分配足够的空间
-    // int ret = recv(clientSocket, &rbuffer[0], MESSAGE_LENGTH_1K, 0);
-    // if (ret <= 0)
-    // {
-    //     std::cout << "ERROR|Failed to receive the user profile message procedure" << '\n';
-    //     return -1;
-    // }
-    // // 处理返回用户资料
-    // int res_code = DealWithMessage(rbuffer); // 如果成功，在函数内已加载到内存
-    // if (LOAD_USER_PROFILE_FAILURE == DealWithMessage(rbuffer))
-    // {
-    //     std::cout << "是否创建用户资料?" << std::endl;
-    //     std::string choice;
-    //     std::getline(std::cin, choice);
-    //     if (choice == "n" or choice == "N")
-    //     {
-    //         std::cout << "取消创建用户资料，跳过此步骤..." << std::endl;
-    //     }
-    //     else if (choice == "y" or choice == "Y")
-    //     {
-    //         // 创建用户资料流程
-    //         // 1. 创建用户资料
-    //         ordered_json ojs = {};
-    //         int ret = InputUserProfile(ojs);
-    //         if (SUCCESS == ret)
-    //         {
-    //             // 2. 发送创建用户资料消息
-    //             ordered_json _j = createSystemOrdJsonMessage(CIPHER, REQ_CREATE_USER_PROFILE, user.getUsername());
-    //             SetOrdJsonKV(_j, std::make_pair("data", ojs));
-    //             std::string send_mes = _j.dump();
-    //             send(clientSocket, send_mes.c_str(), send_mes.size(), 0);
-    //             std::cout << "INFO|Send a message to create user profile -->>" << '\n'
-    //                       << _j.dump(4) << '\n';
-    //             // 3. 接收返回结果
-    //             std::string rbuffer(MESSAGE_LENGTH_1K, '\0'); // 分配足够的空间
-    //             int r_ret = recv(clientSocket, &rbuffer[0], MESSAGE_LENGTH_1K, 0);
-    //             if (r_ret <= 0)
-    //             {
-    //                 std::cout << "ERROR|Failed to receive the create user profile message procedure" << '\n';
-    //                 return -1;
-    //             }
-    //             // 处理返回用户资料, 加载到内存
-    //             if (CREATE_USER_PROFILE_SUCCESS == DealWithMessage(rbuffer))
-    //             {
-    //                 std::cout << "INFO|Create User Profile Success !" << '\n';
-    //                 std::cout << "INFO|Loading User Profile ..." << '\n';
-    //                 ordered_json _data = ordered_json::parse(rbuffer)["data"];
-    //                 updateUserProfile(user_profile, _data);
-    //             }
-    //             else
-    //             {
-    //                 std::cout << "ERROR|创建用户资料失败，跳过此步骤... !" << '\n';
-    //             }
-    //         }
-    //     }
-    //     else{
-    //         std::cout << "输入错误，跳过此步骤... !" << std::endl;
-    //     }
-    // }
-    // std::cout << "当前用户最新资料" << std::endl;
-    // user_profile.displayUserProfile();
-
-    // // TODO*** 4. 聊天功能
-    // ordered_json input_content = getMutipleUserInputJson();
-    // std::cout << input_content.dump(4) << std::endl;
-    // //
-    // // 组装data部分
-    // ordered_json data = createSendMessageJson(generate_uuid(), user.getIntUserID(), 0);
-    // SetOrdJsonKV(data, std::make_pair("content", input_content));
-    // ordered_json sys_mes = createSystemOrdJsonMessage(CIPHER, REQ_SEND_MESSAGE, user.getUsername(), "", data);
-    // std::string send_mes = sys_mes.dump();
-    // send(clientSocket, send_mes.c_str(), send_mes.size(), 0);
-    // std::cout << "INFO|发送聊天消息 -->>" << '\n'
-    //           << sys_mes.dump(4) << '\n';
     
     // 多线程，发送和接收
     // Create send and receive threads

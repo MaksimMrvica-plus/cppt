@@ -334,6 +334,14 @@ int DealWithMessage(const std::string &ss, SOCKET client_socket)
             return CREATE_USER_PROFILE_FAILURE;
         }
     }
+    else if (ANS_SEND_MESSAGE_PER == type)
+    {
+        // 解析
+        ordered_json dat = j["data"];
+        std::cout << "sender: [" << dat["sender"] << "]\n"; 
+        ParseAndPrintContentArray(dat["content"]);
+        return SUCCESS;
+    }
     else
     {
         std::cout << "INFO|接收返回消息成功，未知类型" << '\n';
@@ -682,7 +690,7 @@ void ShowFriendUsernameList(std::unordered_set<std::string> &us)
         std::cout << "ERROR | 未登录，无法查看好友列表" << std::endl;
         return;
     }
-    std::cout << "=============================好友列表：用户名=============================";
+    std::cout << "=============================好友列表：用户名=============================\n";
     for (auto it = us.begin(); it != us.end(); ++it)
     {
         std::cout << *it << '\n';
@@ -788,15 +796,15 @@ int SendMessagePer()
     // 发送消息给单个用户
     // 1 选择用户
     std::string uname = ChooseSendFriend();
+    if ("" == uname)
+        return FAILURE;
     // 2 输入消息
     ordered_json input_content = getMutipleUserInputJson();
     std::cout << input_content.dump(4) << std::endl;
     // 组装data部分
     // TODO**** 这个使用ID号，后续添加用 username的映射，客户端维护一个username和id映射表，在登录时，添加返回一个自身id号，获取好友列表时，也同时让服务侧返回对应id，储存在客户端侧。
     std::string msg_uuid = generate_uuid();
-    uint64_t send_id = user.getIntUserID();
-    uint64_t recv_id = getUserIDfromUsername(uname, TEST_USED_user2id);
-    ordered_json data = createSendPerMsgJson(msg_uuid, send_id, recv_id, "text_test");
+    ordered_json data = createSendPerMsgJson(msg_uuid, user.getUsername(), uname, "text_test");
     SetOrdJsonKV(data, std::make_pair("content", input_content));
     // 3 组装完整系统消息
     ordered_json sys_mes = createSystemOrdJsonMessage(CIPHER, REQ_SEND_MESSAGE_PER, user.getUsername(), "", data);
@@ -899,7 +907,7 @@ int DealWithOperation(int opt, SOCKET client_socket)
             std::cout << "ERROR | 无法展示账户信息，请先登录！" << std::endl;
             return DEFAULT_ERROR;
         }
-        std::cout << "===========用户账户信息===========";
+        std::cout << "===========用户账户信息===========\n";
         user.displayUserInfo();
         return SUCCESS;
     }

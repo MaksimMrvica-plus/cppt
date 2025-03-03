@@ -1,109 +1,95 @@
-如你所见，我的客户端和服务端，接收消息和发送顺序的消息仿佛是被安排好顺序一样，客户端发送后，等待服务端接收后再发送回去，然后客户端等待接收，但实际应用场景并不会这样发一条，接一条，再进行后面发送接收，可能会一下发送好几条，然后过段时间再接收，而且可能也不是对应的接收顺序，所以我怎么能够解决这个问题呢，来取消我现在一个发送一个接收绑定起来的安排
+将你的聊天应用从本地 Windows 环境迁移到 Linux 服务器，并让外部客户端能够连接到该服务器，涉及多个步骤。以下是详细的流程：
 
+1. 准备 Linux 服务器
+1.1 安装必要的依赖
+确保你的 Linux 服务器上安装了以下依赖项：
 
-你可以通过引入消息队列和多线程来解决这个问题。具体步骤如下：
+gcc 或 g++ 编译器
+make
+sqlite3 库
+libws2_32（Windows Socket 库的替代品是 libpthread 和 librt）
+rpcrt4（如果需要）
+你可以使用包管理器来安装这些依赖项。例如，在基于 Debian 的系统上（如 Ubuntu），可以运行以下命令：
 
-消息队列：使用消息队列来存储发送和接收的消息。
-多线程：使用一个线程处理发送消息，另一个线程处理接收消息。
-消息处理：在接收线程中处理接收到的消息，并根据消息类型进行相应的处理。
-下面是一个简单的示例，展示了如何使用消息队列和多线程来实现异步消息处理。
+bash
+sudo apt-get update
+sudo apt-get install build-essential sqlite3 libsqlite3-dev libpthread-stubs0-dev
+1.2 配置防火墙
+确保服务器的防火墙允许外部访问你选择的端口（假设你使用的是默认端口）。你可以使用 ufw 来配置防火墙规则：
 
-伪代码
-创建发送消息队列和接收消息队列。
-创建发送线程，从发送队列中取出消息并发送。
-创建接收线程，从接收队列中取出消息并处理。
-主线程负责将消息放入发送队列，并从接收队列中取出处理结果。
-代码实现
-头文件
-#include <iostream>
-#include <string>
-#include <queue>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <nlohmann/json.hpp>
+bash
+sudo ufw allow <YOUR_PORT>/tcp
+sudo ufw enable
+2. 编译和部署服务端代码
+2.1 修改代码以适应 Linux 环境
+移除 Windows 特定的头文件和宏：
 
-using ordered_json = nlohmann::ordered_json;
+移除 #pragma comment(lib, "ws2_32.lib")。
+替换 #include <winsock2.h> 为 #include <sys/socket.h>、#include <netinet/in.h>、#include <arpa/inet.h> 和 #include <unistd.h>。
+调整路径分隔符：
 
-消息队列类
-template <typename T>
-class MessageQueue {
-private:
-    std::queue<T> queue;
-    std::mutex mtx;
-    std::condition_variable cv;
+将所有路径中的反斜杠 \ 替换为正斜杠 /，例如：
+cpp
+const char *dbPath = "../../db/user.db";
+修改错误处理：
 
-public:
-    void push(const T& msg) {
-        std::lock_guard<std::mutex> lock(mtx);
-        queue.push(msg);
-        cv.notify_one();
-    }
+使用 perror 或 strerror(errno) 代替 GetLastError()。
+2.2 编译服务端代码
+在 Linux 上编译服务端代码时，使用以下命令：
 
-    T pop() {
-        std::unique_lock<std::mutex> lock(mtx);
-        cv.wait(lock, [this] { return !queue.empty(); });
-        T msg = queue.front();
-        queue.pop();
-        return msg;
-    }
-};
+bash
+g++ server.cpp ../tool/tool.cpp ../tool/jsontool.cpp ../../chat/user/user.cpp -o server -lsqlite3 -lpthread -lrt
+2.3 启动服务端
+将编译后的可执行文件上传到服务器并启动它：
 
-全局变量
-MessageQueue<std::string> sendQueue;
-MessageQueue<std::string> recvQueue;
+bash
+./server
+确保服务端程序在后台持续运行，可以使用 nohup 或 screen 工具：
 
-发送线程函数
-void sendThread(SOCKET client_socket) {
-    while (true) {
-        std::string msg = sendQueue.pop();
-        int ret = send(client_socket, msg.c_str(), msg.size(), 0);
-        if (ret <= 0) {
-            std::cout << "ERROR|Failed to send message" << '\n';
-        }
-    }
-}
+bash
+nohup ./server &> server.log &
+3. 配置客户端
+3.1 修改客户端代码
+更新服务器地址：
 
+在客户端代码中，将服务器地址从 localhost 更改为实际的服务器 IP 地址或域名。例如：
+cpp
+std::string server_ip = "your.server.ip.address";
+确保客户端使用正确的端口号：
 
-接收线程函数
-void recvThread(SOCKET client_socket) {
-    while (true) {
-        std::string rbuffer(MESSAGE_LENGTH_1K, '\0');
-        int ret = recv(client_socket, &rbuffer[0], MESSAGE_LENGTH_1K, 0);
-        if (ret > 0) {
-            recvQueue.push(rbuffer);
-        } else {
-            std::cout << "ERROR|Failed to receive message" << '\n';
-        }
-    }
-}
+确保客户端和服务端使用相同的端口号进行通信。
+3.2 编译客户端代码
+在 Windows 上编译客户端代码时，确保已经安装了 MinGW 或 MSYS2，并使用以下命令编译：
 
-消息处理函数
-void processMessages() {
-    while (true) {
-        std::string msg = recvQueue.pop();
-        int res_code = DealWithMessage(msg);
-        // 根据 res_code 进行相应处理
-    }
-}
+bash
+g++ client.cpp ../tool/tool.cpp ../tool/clitool.cpp ../tool/jsontool.cpp ../../chat/user/user.cpp ../../chat/user/userprofile.cpp -o client.exe -lws2_32 -lrpcrt4
+4. 测试连接
+4.1 检查网络连接
+确保客户端能够通过网络访问服务器。你可以使用 ping 命令检查连通性：
 
-主函数
-int main() {
-    SOCKET client_socket = /* 初始化 socket */;
-    
-    std::thread sender(sendThread, client_socket);
-    std::thread receiver(recvThread, client_socket);
-    std::thread processor(processMessages);
+bash
+ping your.server.ip.address
+4.2 测试端口是否开放
+使用 telnet 或 nc（Netcat）工具测试服务器端口是否开放：
 
-    // 示例：将消息放入发送队列
-    ordered_json j = createOrderedJsonMessage(CIPHER, REQ_REGISTER, "username", "password");
-    sendQueue.push(j.dump());
+bash
+telnet your.server.ip.address <YOUR_PORT>
+或者：
 
-    sender.join();
-    receiver.join();
-    processor.join();
+bash
+nc -zv your.server.ip.address <YOUR_PORT>
+4.3 运行客户端
+在外部电脑上运行客户端程序，尝试登录并与服务器交互。
 
-    return 0;
-}
+5. 优化和安全
+5.1 使用 HTTPS/TLS 加密通信
+为了提高安全性，建议使用 HTTPS 或 TLS 加密通信。你可以使用 OpenSSL 库来实现这一点。
 
-通过这种方式，你可以实现异步的消息发送和接收，不再需要严格的发送-接收顺序。
+5.2 日志记录和监控
+设置日志记录机制，以便跟踪服务端和客户端的运行状态。可以使用 rsyslog 或其他日志管理工具。
+
+5.3 用户认证和权限管理
+确保用户认证机制足够安全，避免密码明文传输。可以考虑使用哈希算法（如 bcrypt）存储密码，并使用 JWT 或类似的机制进行会话管理。
+
+总结
+通过以上步骤，你应该能够成功地将服务端部署到 Linux 服务器上，并让外部客户端能够与之交互。确保每个步骤都仔细检查，特别是在网络配置和防火墙设置方面，以确保顺利连接。

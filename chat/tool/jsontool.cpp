@@ -128,8 +128,8 @@ json parseJsonMessage(const std::string& jsonString)
 // 创建发送消息内容 json 数据
 ordered_json createSendMessageJson(
     const std::string &messageId,
-    const uint64_t senderId,
-    const uint64_t receiverId,
+    const std::string &sender,
+    const std::string &receiver,
     const std::string &type,
     const ordered_json &content,
     const uint64_t timestamp, // 使用整数类型的时间戳
@@ -139,8 +139,8 @@ ordered_json createSendMessageJson(
 ){
     ordered_json j;
     j["messageId"] = messageId;
-    j["senderId"] = senderId;
-    j["receiverId"] = receiverId;
+    j["sender"] = sender;
+    j["receiver"] = receiver;
     j["type"] = type;
     j["content"] = content;
     j["timestamp"] = timestamp;
@@ -153,8 +153,8 @@ ordered_json createSendMessageJson(
 // 创建发送消息内容 json 数据
 ordered_json createSendPerMsgJson(
     const std::string &messageId,
-    const uint64_t senderId,
-    const uint64_t receiverId,
+    const std::string &sender,
+    const std::string &receiver,
     const std::string &type,
     const ordered_json &content,
     const uint64_t timestamp, // 使用整数类型的时间戳
@@ -164,8 +164,8 @@ ordered_json createSendPerMsgJson(
 ){
     ordered_json j;
     j["messageId"] = messageId;
-    j["senderId"] = senderId;
-    j["receiverId"] = receiverId;
+    j["sender"] = sender;
+    j["receiver"] = receiver;
     j["type"] = type;
     j["content"] = content;
     j["timestamp"] = timestamp;
@@ -199,27 +199,34 @@ ordered_json createUserProfileJson(
     return j;
 }
 
+// 函数定义
+void ParseAndPrintContentArray(const ordered_json &content)
+{
+    if (!content.is_array())
+    {
+        std::cerr << "ERROR | content is not a JSON array" << '\n';
+        return;
+    }
 
-// int main()
-// {
-//     // 创建一个示例 JSON 对象
-//     json j = {
-//         {"name", "John"},
-//         {"age", 30},
-//         {"city", "New York"}};
+    for (size_t i = 0; i < content.size(); ++i)
+    {
+        const ordered_json &item = content[i];
 
-//     // 打印原始 JSON
-//     std::cout << "Original JSON:" << std::endl;
-//     std::cout << j.dump(4) << std::endl;
+        if (!item.is_object())
+        {
+            std::cerr << "ERROR | Item at index " << i << " is not a JSON object" << '\n';
+            continue;
+        }
 
-//     // 修改或添加键值对
-//     ModifyOrAdd(j, {"age", 31}, 1);             // 修改现有键（允许覆盖）
-//     ModifyOrAdd(j, {"country", "USA"}, 1);      // 添加新键
-//     ModifyOrAdd(j, {"city", "Los Angeles"}, 0); // 修改现有键（不允许覆盖）
+        std::string type = item.value("type", "N/A");
+        std::string sub_type = item.value("sub_type", "N/A");
+        std::string data = item.value("data", "N/A");
 
-//     // 打印修改后的 JSON
-//     std::cout << "\nModified JSON:" << std::endl;
-//     std::cout << j.dump(4) << std::endl;
-
-//     return 0;
-// }
+        std::cout << "--------------------------\n"
+                  << "Message " << (i + 1) << ":\n"
+                  << "  Type: " << type << '\n'
+                  << "  Sub-Type: " << sub_type << '\n'
+                  << "  Data: " << data << '\n'
+                  << "--------------------------\n";
+    }
+}
