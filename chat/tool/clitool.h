@@ -24,6 +24,7 @@
 int DealWithMessage(const std::string &ss, SOCKET client_socket=0);
 int GetProfile(const std::string &username);
 int CreateUserProfile();
+int UpdateUserProfile();
 int UpdateUserProfile(const ordered_json &data);
 int SetLocalUserProfile(UserProfile &user_profile, const ordered_json &data);
 int SendReqRegisterMessage(SOCKET client_socket, const std::string &username, const std::string &password);
@@ -54,7 +55,10 @@ int DealWithOperation(int opt, SOCKET client_socket);
 SOCKET InitializeClientSocket();
 std::unordered_set<std::string> GetFriendUsernameUordSet();
 void ShowFriendUsernameList(std::unordered_set<std::string>& us);  // 后续重载函数，接收多种类型
-
+int ChangeUserStatus();
+int QueryUpdateProfileItem(ordered_json &change_profile);
+bool getRangeNumberInput(int &num, int min_value, int max_value); 
+bool getNumberInput(int &num);
 
 
 

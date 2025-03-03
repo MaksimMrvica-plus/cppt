@@ -12,6 +12,10 @@ const int MESSAGE_LENGTH_8K = 8192;
 const std::string CIPHER = "NXFZZB!Q#3SMB";
 const std::string CIPHER_SQUARE = "[NXFZZB!Q#3SMB]";
 
+// 使用端口号
+#define CLIENT_PORT 8080
+#define SERVER_PORT 8080
+
 // 通用返回码
 #define SUCCESS 1
 #define DEFAULT_SUCCESS 2
@@ -37,6 +41,9 @@ const std::string CIPHER_SQUARE = "[NXFZZB!Q#3SMB]";
 #define LOAD_USER_PROFILE_FAILURE -8
 #define CREATE_USER_PROFILE_SUCCESS 9
 #define CREATE_USER_PROFILE_FAILURE -9
+#define UPDATE_USER_PROFILE_SUCCESS 14
+#define UPDATE_USER_PROFILE_FAILURE -14
+
 
 // 数据库返回码
 #define OPEN_DB_SUCCESS 1
@@ -109,6 +116,8 @@ const std::string CIPHER_SQUARE = "[NXFZZB!Q#3SMB]";
 #define DISPLAY_PROFILE 11
 #define DISPLAY_USER_INFO 12
 #define DISPLAY_FRIEND 13
+#define CHANGE_STATUS 14
+
 
 #define CHOOSE_OPERATION_ERROR -2312
 
@@ -120,7 +129,7 @@ const std::string CIPHER_SQUARE = "[NXFZZB!Q#3SMB]";
 #define AWAY 4
 #define INVISIBLE 5
 
-#define LOGGING 3
+#define LOGGING 9
 
 
 
